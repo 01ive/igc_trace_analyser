@@ -4,7 +4,13 @@ This project allows to read *.IGC files and to analyse flight data such as speed
 
 ## Usage
 
-Just download this project and open **index.html** with your webbrowser.
+### Direcly from web
+
+[https://01ive.github.io/igc_trace_analyser/](https://01ive.github.io/igc_trace_analyser/)
+
+### Localy
+
+Just download this project (<> CODE / Dwoload ZIP) and open **index.html** with your webbrowser.
 
 ## Screenshot
 
