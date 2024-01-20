@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>IGC file analyser</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="index.css" />
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+		integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+		crossorigin=""/>
+		<script src='https://cdn.plot.ly/plotly-2.27.0.min.js'></script>
+		<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+		integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+		crossorigin=""></script>
+		<script src="common.js"></script>
+		<script src="bundle.js"></script>
+	</head>
+
+	<body>
+		<div class="primary_box"></div>
+			<div id="title">
+				<table>
+					<tr><td>date</td><td id="flight_date">__:__:__</td></tr>
+					<tr><td>time</td><td id="flight_time">----</td></tr>
+					<tr><td>duration</td><td id="flight_duration">----</td></tr>
+					<tr><td>high</td><td id="flight_high">----</td></tr>
+					<tr><td>elevation</td><td id="flight_elevation">----</td></tr>
+				</table>	
+			</div>
+			<div id="menu_button">
+				<label id="my-file-selector" for="file-selector"></label>
+				<input type="file" id="file-selector" accept=".igc">
+			</div>
+			<div id="map"></div>
+			<div id="elevation"></div>
+			<div id="speed_gauge"></div>
+			<div id="vario"></div>
+			<div id="text">
+					<div>time&nbsp;</div><div id="point_info_time">__:__:__</div>
+					<div>elevation (gps)&nbsp;</div><div id="point_info_elevation_gps">----</div>
+					<div>terrain&nbsp;</div><div id="point_info_terrain">----</div>
+					<div>elevation (pressure)&nbsp;</div><div id="point_info_elevation_pressure">----</div>
+					<div>distance&nbsp;</div><div id="point_info_distance">----</div>
+					<div>finesse&nbsp;</div><div id="point_info_finesse">----</div>
+					<div>bearing&nbsp;</div><div id="point_info_bearing">----</div>
+			</div>
+		</div>
+
+		<script>
+			// Declare global object (must be access from everywhere)
+			var paragliding_stats;
+
+			// Synchronous get request
+			async function get(address) {
+				const response = await fetch(address);
+				if(!response.ok) {
+					console.log("Error");
+				}
+				const data = await response.json();
+				return data.elevations;
+			}
+
+			// Get terrain elevation
+			async function get_terrain_elevation(locations) {
+				let elevations;
+				try {
+					let elevations_requests = [];
+					for(i in locations) {
+						elevations_requests[i] = get('https://wxs.ign.fr/calcul/alti/rest/elevation.json?' + locations[i] + '&zonly=true');
+					}
+					elevations = await Promise.all(elevations_requests);
+					elevations = [].concat(...elevations);
+				} catch (error) {
+					console.log(error);
+					elevations = new Array(locations.length*200).fill(0);
+				}
+				return elevations;
+			}
+
+			// Calculate data and refresh map
+			async function update_map(new_file) {
+				paragliding_info = new ParaglidingPoint(new_file.fixes);
+				// Process paragliding info
+				paragliding_info.calculate_elevation();
+				paragliding_info.calculate_distances();
+				paragliding_info.calculate_speeds();
+				paragliding_info.calculate_bearing();
+				paragliding_info.calculate_finesse();
+				
+				// Process terrain elevation
+				let locations = paragliding_info.get_terrain_elevation(200);
+				let elevations = await get_terrain_elevation(locations);
+				paragliding_info.set_terrain_elevation(elevations);
+
+				// Calculate center of map coordinates
+				let middle_index = Math.floor(paragliding_info.length()/2);
+				new_file.paragliding_info = paragliding_info;
+				new_file.middle_index = middle_index;
+				new_file.center_lon = paragliding_info[middle_index].longitude;
+				new_file.center_lat = paragliding_info[middle_index].latitude;
+				
+				refresh_map(new_file);
+			}
+			
+			// Refresh map
+			function refresh_map(flight) {
+				paragliding_stats = flight.paragliding_info;
+
+				// Update globals infos
+				document.getElementById('flight_date').innerHTML = flight.date;
+				document.getElementById('flight_time').innerHTML = flight.paragliding_info.start_time();
+				document.getElementById('flight_duration').innerHTML = flight.paragliding_info.duration();
+				document.getElementById('flight_high').innerHTML = flight.paragliding_info.high() + "m";
+				document.getElementById('flight_elevation').innerHTML = flight.paragliding_info.elevation_total() + "m";
+				
+				// Delete existing map
+				if (map && map.remove) {
+					map.off();
+					map.remove();
+				}
+
+				// Create map
+				map = L.map('map', {
+					center: [flight.center_lat, flight.center_lon],
+					zoom: 13,
+					layers: [GeoportailFrance_plan],
+					zoomControl: false
+				});
+
+				L.control.zoom({
+					position: 'topright'
+				}).addTo(map);
+
+				// Create layer control
+				var baseMaps = {
+					"GeoportailFrance_plan": GeoportailFrance_plan,
+					"GeoportailFrance_orthos": GeoportailFrance_orthos,
+					"OpenStreetMap_Fr": osm_fr,
+					"OpenTopoMap": OpenTopoMap,
+					"Esri_WorldImagery": Esri_WorldImagery
+				};
+				var layerControl = L.control.layers(baseMaps).addTo(map);
+
+				// Add icons
+				var last_item = Object.keys(paragliding_stats).length-1 ;
+				var start_icon = L.icon({iconUrl: '../public/marker-icon-g.png', iconSize: [25, 41], iconAnchor: [12, 41]});
+				var end_icon = L.icon({iconUrl: '../public/marker-icon-r.png', iconSize: [25, 41], iconAnchor: [12, 41]});
+				L.marker([paragliding_stats[0].latitude, paragliding_stats[0].longitude], {icon: start_icon}).addTo(map).bindPopup('Start');
+				L.marker([paragliding_stats[last_item].latitude, paragliding_stats[last_item].longitude], {icon: end_icon}).addTo(map).bindPopup('End');			
+				var paraglider_icon = L.icon({iconUrl: '../public/paraglider.png', iconSize: [25, 23], iconAnchor: [12, 20]});
+				cursor = L.marker([paragliding_stats[0].latitude, paragliding_stats[0].longitude], {icon: paraglider_icon});
+				cursor.addTo(map).bindPopup('Cursor');
+				
+				// Create trace
+				var latlngs = [];
+				for(let point in paragliding_stats) {
+					latlngs.push([paragliding_stats[point].latitude, paragliding_stats[point].longitude]);
+				}
+				geo = L.polyline(latlngs, {color: 'red'});
+				map.on('mousemove', function(ev) {
+						var latlng = map.mouseEventToLatLng(ev.originalEvent);
+						closest_point_index = closest_point(latlng.lat, latlng.lng);
+						update_position(closest_point_index);
+					});
+				geo.addTo(map);
+
+				// zoom the map to the polyline
+				map.fitBounds(geo.getBounds());
+
+				// Create elevation graph
+				let [elevation_data, elevation_min, elevation_max, terrain_elevation] = get_elevation(paragliding_stats);
+				let [distance_data, distance_min, distance_max] = get_distance(paragliding_stats);
+				let speed_data = Object.values(paragliding_stats).map( item => item.speed);
+				let vertical_speed_data = Object.values(paragliding_stats).map( item => item.vertical_speed);
+				elevation_graph = document.getElementById('elevation');
+				Plotly.newPlot( elevation_graph, 
+								[{x: distance_data, y: elevation_data, name: "elevation", hoverinfo: "none", yaxis: 'y4'}, // Defining y4 axis allows to have mouse hover linked to elevation_data
+								{x: distance_data, y: terrain_elevation, name: "terrain", hoverinfo: "none"},
+								{x: distance_data, y: speed_data, name: "speed", hoverinfo: "none", yaxis: 'y2', visible: 'legendonly'},
+								{x: distance_data, y: vertical_speed_data, name: "vario", hoverinfo: "none", yaxis: 'y3', visible: 'legendonly'}
+								], 
+								{	hovermode: "x",	// Allow to have smooth over
+									shapes: [{
+										type: 'line',
+										x0: 0,
+										y0: elevation_min-50,
+										x1: 0,
+										y1: elevation_max+50,
+										line: {
+											color: 'black',
+											width: 1,
+											dash: 'dot'
+										},
+										label: {
+											text: elevation_data[0].toPrecision(4) + 'm<br>' 
+													+ (paragliding_stats[0].distance_total/1000).toPrecision(4) + 'km',
+											font: { size: 10, color: 'black' },
+											textposition: 'end',
+											textangle: 0,
+											xanchor: "right",
+											yanchor: "top"
+											},
+									}],
+									xaxis: {
+										range: [-(distance_max/10), distance_max+(distance_max/10)],
+										showgrid: false
+									},
+									yaxis: {
+										range: [elevation_min-50, elevation_max+50],
+										showgrid: false,
+									},
+									yaxis2: {
+										range: [0, 60],
+										showgrid: false
+									},
+									yaxis3: {
+										range: [-5, 5],
+										showgrid: false,
+										visible: false,
+										showline: false,
+										linewidth: 0
+									},
+									yaxis4: {
+										range: [elevation_min-50, elevation_max+50],
+										showgrid: false
+									},
+									margin: {
+										autoexpand: 0,
+										b: 0,
+										l: 10,
+										pad: 100,
+										r: 0,
+										t: 0
+									},
+									paper_bgcolor:"rgba(0, 0, 0, 0)",
+									plot_bgcolor:"rgba(0, 0, 0, 0)",
+									legend: {
+										x: 0,
+										y: 1
+									}
+								}
+							);
+				elevation_graph.on('plotly_hover', function(data){
+					update_position(data.points[0].pointIndex);
+					});
+				// Create speed graph
+				Plotly.newPlot('speed_gauge', gauge_data, gauge_layout);
+				// Create Vario
+				Plotly.newPlot('vario', vario_data, vario_layout);
+			}
+		
+			// Load file button
+			const fileSelector = document.getElementById('file-selector');
+			let current_file;
+			fileSelector.addEventListener('change', (event) => {
+				const fileList = event.target.files;
+				const reader = new FileReader();
+				reader.addEventListener('load', (event) => {
+					current_file = IGCParser(event.target.result);
+					update_map(current_file);
+				});
+				reader.readAsText(fileList[0]);
+			});
+			
+			// Create map layers
+			var GeoportailFrance_plan = L.tileLayer('https://wxs.ign.fr/{apikey}/geoportail/wmts?REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&STYLE={style}&TILEMATRIXSET=PM&FORMAT={format}&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}', {
+				attribution: '<a target="_blank" href="https://www.geoportail.gouv.fr/">Geoportail France</a>',
+				bounds: [[-75, -180], [81, 180]],
+				minZoom: 2,
+				maxZoom: 18,
+				apikey: 'choisirgeoportail',
+				format: 'image/png',
+				style: 'normal'
+			});
+			var GeoportailFrance_orthos = L.tileLayer('https://wxs.ign.fr/{apikey}/geoportail/wmts?REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&STYLE={style}&TILEMATRIXSET=PM&FORMAT={format}&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}', {
+				attribution: '<a target="_blank" href="https://www.geoportail.gouv.fr/">Geoportail France</a>',
+				bounds: [[-75, -180], [81, 180]],
+				minZoom: 2,
+				maxZoom: 19,
+				apikey: 'choisirgeoportail',
+				format: 'image/jpeg',
+				style: 'normal'
+			});
+			var osm_fr = L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
+				maxZoom: 20,
+				attribution: '&copy; OpenStreetMap France | &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+			});
+			var OpenTopoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+				maxZoom: 17,
+				attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+			});
+			var Esri_WorldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+				attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+			});
+
+			// Create map
+			var map = L.map('map', {
+						center: [47.00068424459144, 2.5548502515601577],
+						zoom: 6,
+						layers: [GeoportailFrance_plan],
+						zoomControl: false
+					});
+			L.control.zoom({
+				position: 'topright'
+			}).addTo(map);
+
+			// Create layer control
+			var baseMaps = {
+				"GeoportailFrance_plan": GeoportailFrance_plan,
+				"GeoportailFrance_orthos": GeoportailFrance_orthos,
+				"OpenStreetMap_Fr": osm_fr,
+				"OpenTopoMap": OpenTopoMap,
+				"Esri_WorldImagery": Esri_WorldImagery
+			};
+			var layerControl = L.control.layers(baseMaps).addTo(map);
+		</script>
+	</body>
+</html>
