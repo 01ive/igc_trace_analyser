@@ -10,7 +10,7 @@
     display: block;
     cursor: pointer;
     background-color: whitesmoke;
-    background-image: url("../public/folder.png");
+    background-image: url("ressources/folder.png");
     background-repeat: no-repeat;
     background-position: center;
     height: 100%;
