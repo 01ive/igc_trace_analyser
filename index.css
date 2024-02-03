@@ -6,28 +6,87 @@
     display: none;
 }
 
-#my-file-selector {
-    display: block;
-    cursor: pointer;
-    background-color: whitesmoke;
-    background-image: url("ressources/folder.png");
-    background-repeat: no-repeat;
-    background-position: center;
-    height: 100%;
-}
-
 #menu_button {
     position: absolute;
     top: 0;
     margin-left: 10px;
     margin-top: 20px;
-    background-color: whitesmoke;
     width: 50px;
     height: 50px;
-    border-radius: 5px;
-    border: 2px solid lightgray;
+    border-radius: 4px;
     z-index: 5;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    border: 2px solid rgba(0, 0, 0, 0.2);
+}
+
+#my-file-selector {
+    display: block;
+    cursor: pointer;
+    background-color: white;
+    background-image: url("ressources/folder.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 100%;
+    border-radius: 2px;
+}
+
+#my-file-selector:hover {
+    background-color: whitesmoke;
+}
+
+#play_stop_button {
+    position: absolute;
+    top: 0;
+    margin-left: 65px;
+    margin-top: 20px;
+    width: 25px;
+    height: 25px;
+    border-radius: 4px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    z-index: 5;
+}
+
+#play_picture {
+    display: block;
+    cursor: pointer;
+    background-color: white;
+    background-image: url("ressources/play.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    border-radius: 2px;
+    height: 100%;
+    width: 100%;
+}
+
+#play_picture:hover {
+    background-color: whitesmoke;
+}
+
+#speed_button {
+    position: absolute;
+    top: 0;
+    margin-left: 95px;
+    margin-top: 20px;
+    width: 25px;
+    height: 25px;
+    border-radius: 4px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    z-index: 5;
+}
+
+#speed_picture {
+    display: block;
+    cursor: pointer;
+    background-color: white;
+    background-image: url("ressources/fastforward.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    border-radius: 2px;
+    height: 100%;
+    width: 100%;
+}
+
+#speed_picture:hover {
+    background-color: whitesmoke;
 }
 
 #menu {

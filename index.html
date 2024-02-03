@@ -31,6 +31,8 @@
 				<label id="my-file-selector" for="file-selector"></label>
 				<input type="file" id="file-selector" accept=".igc">
 			</div>
+			<div id="play_stop_button"><div id="play_picture" onclick="play_cmd()"></div></div>
+			<div id="speed_button"><div id="speed_picture" onclick="speed_cmd()"></div></div>
 			<div id="map"></div>
 			<div id="elevation"></div>
 			<div id="speed_gauge"></div>
@@ -145,11 +147,11 @@
 				var last_item = Object.keys(paragliding_stats).length-1 ;
 				var start_icon = L.icon({iconUrl: 'ressources/marker-icon-g.png', iconSize: [25, 41], iconAnchor: [12, 41]});
 				var end_icon = L.icon({iconUrl: 'ressources/marker-icon-r.png', iconSize: [25, 41], iconAnchor: [12, 41]});
-				L.marker([paragliding_stats[0].latitude, paragliding_stats[0].longitude], {icon: start_icon}).addTo(map).bindPopup('Start');
-				L.marker([paragliding_stats[last_item].latitude, paragliding_stats[last_item].longitude], {icon: end_icon}).addTo(map).bindPopup('End');			
+				L.marker([paragliding_stats[0].latitude, paragliding_stats[0].longitude], {icon: start_icon}).addTo(map);
+				L.marker([paragliding_stats[last_item].latitude, paragliding_stats[last_item].longitude], {icon: end_icon}).addTo(map);			
 				var paraglider_icon = L.icon({iconUrl: 'ressources/paraglider.png', iconSize: [25, 23], iconAnchor: [12, 20]});
 				cursor = L.marker([paragliding_stats[0].latitude, paragliding_stats[0].longitude], {icon: paraglider_icon});
-				cursor.addTo(map).bindPopup('Cursor');
+				cursor.addTo(map);
 				
 				// Create trace
 				var latlngs = [];
@@ -157,11 +159,24 @@
 					latlngs.push([paragliding_stats[point].latitude, paragliding_stats[point].longitude]);
 				}
 				geo = L.polyline(latlngs, {color: 'red'});
+				var autorize_map_mousemove = true;
 				map.on('mousemove', function(ev) {
-						var latlng = map.mouseEventToLatLng(ev.originalEvent);
-						closest_point_index = closest_point(latlng.lat, latlng.lng);
-						update_position(closest_point_index);
+						if( (auto_play_timer == 0) && (autorize_map_mousemove) ) {
+							var latlng = map.mouseEventToLatLng(ev.originalEvent);
+							closest_point_index = closest_point(latlng.lat, latlng.lng);
+							update_position(closest_point_index);
+						}
 					});
+				map.on('click', function(ev) {
+					if(autorize_map_mousemove) {
+						autorize_map_mousemove = false;
+					} else {
+						autorize_map_mousemove = true;
+					}
+					var latlng = map.mouseEventToLatLng(ev.originalEvent);
+					closest_point_index = closest_point(latlng.lat, latlng.lng);
+					update_position(closest_point_index);
+				});
 				geo.addTo(map);
 
 				// zoom the map to the polyline

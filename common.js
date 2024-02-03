@@ -23,6 +23,50 @@ function display_stats(point) {
     document.getElementById("point_info_bearing").innerHTML = point.bearing.toPrecision(4) + "°N";
 }
 
+// Auto play fucntions
+var play_index = 0;
+var auto_play_timer = 0;
+var play_time_period;
+
+function play_cmd() {
+    if (typeof paragliding_info !== 'undefined') {
+        if(auto_play_timer == 0) {
+            document.getElementById("play_picture").style.backgroundImage="url(ressources/pause.png)";
+            play();
+        } else {
+            document.getElementById("play_picture").style.backgroundImage="url(ressources/play.png)";
+            stop();
+        }
+    }
+}
+
+function speed_cmd() {
+    if ( (typeof paragliding_info !== 'undefined') && (auto_play_timer != 0) ) {
+        play_time_period /= 2;
+        clearInterval(auto_play_timer);
+        auto_play_timer = setInterval(play_period, play_time_period);
+    }
+}
+
+function play() {
+    play_time_period = paragliding_info[1].timestamp - paragliding_info[0].timestamp;
+    auto_play_timer = setInterval(play_period, play_time_period);
+}
+
+function play_period() {
+    play_index++;
+    if(play_index >= paragliding_stats.length()) {
+        play_cmd();
+    } else {
+        update_position(play_index);
+    }
+}
+
+function stop() {
+    clearInterval(auto_play_timer);
+    auto_play_timer = 0;
+}
+
 function update_position(position_index) {
     latlng = new leaflet.LatLng(0, 0);
     // Update cursor
@@ -45,6 +89,8 @@ function update_position(position_index) {
     elevation_graph.layout.shapes[0].label.text=paragliding_stats[position_index].gpsAltitude.toPrecision(4) + 'm<br>' 
         + (paragliding_stats[position_index].distance_total/1000).toPrecision(4) + 'km';
     Plotly.restyle('elevation', updt);
+    // Update auto play index
+    play_index = position_index;
 }
 
 // Create elevation data
