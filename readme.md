@@ -12,10 +12,6 @@ This project allows to read *.IGC files and to analyse flight data such as speed
 
 Just download this project (<> CODE / Dwoload ZIP) and open **index.html** with your webbrowser.
 
-## Screenshot
-
-![Screen example](screen.jpg)
-
 ## User manual
 
 Use the folder icon at the top left of the screen to select your igc file to analyse.
