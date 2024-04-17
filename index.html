@@ -17,35 +17,33 @@
 	</head>
 
 	<body>
-		<div class="primary_box"></div>
-			<div id="title">
-				<table>
-					<tr><td>date</td><td id="flight_date">__:__:__</td></tr>
-					<tr><td>time</td><td id="flight_time">----</td></tr>
-					<tr><td>duration</td><td id="flight_duration">----</td></tr>
-					<tr><td>high</td><td id="flight_high">----</td></tr>
-					<tr><td>elevation</td><td id="flight_elevation">----</td></tr>
-				</table>	
-			</div>
-			<div id="menu_button">
-				<label id="my-file-selector" for="file-selector"></label>
-				<input type="file" id="file-selector" accept=".igc">
-			</div>
-			<div id="play_stop_button"><div id="play_picture" onclick="play_cmd()"></div></div>
-			<div id="speed_button"><div id="speed_picture" onclick="speed_cmd()"></div></div>
-			<div id="map"></div>
-			<div id="elevation"></div>
-			<div id="speed_gauge"></div>
-			<div id="vario"></div>
-			<div id="text">
-					<div>time&nbsp;</div><div id="point_info_time">__:__:__</div>
-					<div>elevation (gps)&nbsp;</div><div id="point_info_elevation_gps">----</div>
-					<div>terrain&nbsp;</div><div id="point_info_terrain">----</div>
-					<div>elevation (pressure)&nbsp;</div><div id="point_info_elevation_pressure">----</div>
-					<div>distance&nbsp;</div><div id="point_info_distance">----</div>
-					<div>finesse&nbsp;</div><div id="point_info_finesse">----</div>
-					<div>bearing&nbsp;</div><div id="point_info_bearing">----</div>
-			</div>
+		<div id="title">
+			<table>
+				<tr><td>date</td><td id="flight_date">__:__:__</td></tr>
+				<tr><td>time</td><td id="flight_time">----</td></tr>
+				<tr><td>duration</td><td id="flight_duration">----</td></tr>
+				<tr><td>high</td><td id="flight_high">----</td></tr>
+				<tr><td>elevation</td><td id="flight_elevation">----</td></tr>
+			</table>	
+		</div>
+		<div id="menu_button">
+			<label id="my-file-selector" for="file-selector"></label>
+			<input type="file" id="file-selector" accept=".igc">
+		</div>
+		<div id="play_stop_button"><div id="play_picture" onclick="play_cmd()"></div></div>
+		<div id="speed_button"><div id="speed_picture" onclick="speed_cmd()"></div></div>
+		<div id="map"></div>
+		<div id="elevation"></div>
+		<div id="speed_gauge"></div>
+		<div id="vario"></div>
+		<div id="text">
+				<div>time&nbsp;</div><div id="point_info_time">__:__:__</div>
+				<div>elevation (gps)&nbsp;</div><div id="point_info_elevation_gps">----</div>
+				<div>terrain&nbsp;</div><div id="point_info_terrain">----</div>
+				<div>elevation (pressure)&nbsp;</div><div id="point_info_elevation_pressure">----</div>
+				<div>distance&nbsp;</div><div id="point_info_distance">----</div>
+				<div>finesse&nbsp;</div><div id="point_info_finesse">----</div>
+				<div>bearing&nbsp;</div><div id="point_info_bearing">----</div>
 		</div>
 
 		<script>
