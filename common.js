@@ -29,7 +29,7 @@ var auto_play_timer = 0;
 var play_time_period;
 
 function play_cmd() {
-    if (typeof paragliding_info !== 'undefined') {
+    if (typeof paragliding_stats !== 'undefined') {
         if(auto_play_timer == 0) {
             document.getElementById("play_picture").style.backgroundImage="url(ressources/pause.png)";
             play();
@@ -41,7 +41,7 @@ function play_cmd() {
 }
 
 function speed_cmd() {
-    if ( (typeof paragliding_info !== 'undefined') && (auto_play_timer != 0) ) {
+    if ( (typeof paragliding_stats !== 'undefined') && (auto_play_timer != 0) ) {
         play_time_period /= 2;
         clearInterval(auto_play_timer);
         auto_play_timer = setInterval(play_period, play_time_period);
@@ -49,7 +49,7 @@ function speed_cmd() {
 }
 
 function play() {
-    play_time_period = paragliding_info[1].timestamp - paragliding_info[0].timestamp;
+    play_time_period = paragliding_stats[1].timestamp - paragliding_stats[0].timestamp;
     auto_play_timer = setInterval(play_period, play_time_period);
 }
 

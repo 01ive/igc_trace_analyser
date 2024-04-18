@@ -19,7 +19,7 @@
 	<body>
 		<div id="title">
 			<table>
-				<tr class="line_title"><td>Genral infos</td></tr>
+				<tr class="line_title" onclick="click_info()"><td>Genral infos</td></tr>
 				<tr><td>date</td><td id="flight_date">__:__:__</td></tr>
 				<tr><td>time</td><td id="flight_time">----</td></tr>
 				<tr><td>logger</td><td id="logger">----</td></tr>
@@ -39,7 +39,7 @@
 
 				<tr class="line_title"><td><br>Details</td></tr>
 				<tr><td>distance</td><td id="distance">----</td></tr>
-				<tr><td>distance takeoff to landing</td><td id="distance_takeoff_landing">----</td></tr>
+				<tr><td>distance takeoff to landing&nbsp;</td><td id="distance_takeoff_landing">----</td></tr>
 				<tr><td>distance max from takeoff</td><td id="distance_max_takeoff">----</td></tr>
 				<tr><td>average speed</td><td id="average_speed">----</td></tr>
 				<tr><td>max speed</td><td id="max_speed">----</td></tr>
@@ -71,6 +71,17 @@
 		</div>
 
 		<script>
+			function click_info() {
+				element = document.getElementById("title");
+				if(element.style.height != '') {	
+					element.style.removeProperty("height");
+					element.style.removeProperty("overflow");
+				} else {
+					element.style.height = '20px';
+					element.style.overflow = 'hidden';
+				}
+
+			}
 			// Declare global object (must be access from everywhere)
 			var paragliding_stats;
 
