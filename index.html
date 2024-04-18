@@ -19,11 +19,35 @@
 	<body>
 		<div id="title">
 			<table>
+				<tr class="line_title"><td>Genral infos</td></tr>
 				<tr><td>date</td><td id="flight_date">__:__:__</td></tr>
 				<tr><td>time</td><td id="flight_time">----</td></tr>
+				<tr><td>logger</td><td id="logger">----</td></tr>
 				<tr><td>duration</td><td id="flight_duration">----</td></tr>
 				<tr><td>high</td><td id="flight_high">----</td></tr>
 				<tr><td>elevation</td><td id="flight_elevation">----</td></tr>
+
+				<tr class="line_title"><td><br>Takeoff</td></tr>
+				<tr><td>time</td><td id="takeoff_time">----</td></tr>
+				<tr><td>elevation</td><td id="takeoff_elevation">----</td></tr>
+				<tr><td>position</td><td id="takeoff_position">--,--</td></tr>
+
+						<tr class="line_title"><td><br>Landing</td></tr>
+				<tr><td>time</td><td id="landing_time">----</td></tr>
+				<tr><td>elevation</td><td id="landing_elevation">----</td></tr>
+				<tr><td>position</td><td id="landing_position">--,--</td></tr>
+
+				<tr class="line_title"><td><br>Details</td></tr>
+				<tr><td>distance</td><td id="distance">----</td></tr>
+				<tr><td>distance takeoff to landing</td><td id="distance_takeoff_landing">----</td></tr>
+				<tr><td>distance max from takeoff</td><td id="distance_max_takeoff">----</td></tr>
+				<tr><td>average speed</td><td id="average_speed">----</td></tr>
+				<tr><td>max speed</td><td id="max_speed">----</td></tr>
+				<tr><td>average vertical speed</td><td id="average_vertical_speed">----</td></tr>
+				<tr><td>min vertical speed</td><td id="min_vertical_speed">----</td></tr>
+				<tr><td>max vertical speed</td><td id="max_vertical_speed">----</td></tr>
+				<tr><td>elevation max</td><td id="elevation_max">----</td></tr>
+				<tr><td>max takeoff elevation</td><td id="over_takeoff_elevation">----</td></tr>
 			</table>	
 		</div>
 		<div id="menu_button">
@@ -78,28 +102,15 @@
 			}
 
 			// Calculate data and refresh map
-			async function update_map(new_file) {
-				paragliding_info = new ParaglidingPoint(new_file.fixes);
-				// Process paragliding info
-				paragliding_info.calculate_elevation();
-				paragliding_info.calculate_distances();
-				paragliding_info.calculate_speeds();
-				paragliding_info.calculate_bearing();
-				paragliding_info.calculate_finesse();
+			async function update_map(flight) {
+				flight.process_flight_info();
 				
 				// Process terrain elevation
-				let locations = paragliding_info.get_positions_by_group(200);
+				let locations = flight.paragliding_info.get_positions_by_group(200);
 				let elevations = await get_terrain_elevation(locations);
-				paragliding_info.set_terrain_elevation(elevations);
-
-				// Calculate center of map coordinates
-				let middle_index = Math.floor(paragliding_info.length()/2);
-				new_file.paragliding_info = paragliding_info;
-				new_file.middle_index = middle_index;
-				new_file.center_lon = paragliding_info[middle_index].longitude;
-				new_file.center_lat = paragliding_info[middle_index].latitude;
+				flight.paragliding_info.set_terrain_elevation(elevations);
 				
-				refresh_map(new_file);
+				refresh_map(flight);
 			}
 			
 			// Refresh map
@@ -107,11 +118,7 @@
 				paragliding_stats = flight.paragliding_info;
 
 				// Update globals infos
-				document.getElementById('flight_date').innerHTML = flight.date;
-				document.getElementById('flight_time').innerHTML = flight.paragliding_info.start_time();
-				document.getElementById('flight_duration').innerHTML = flight.paragliding_info.duration();
-				document.getElementById('flight_high').innerHTML = flight.paragliding_info.high() + "m";
-				document.getElementById('flight_elevation').innerHTML = flight.paragliding_info.elevation_total() + "m";
+				update_globals_infos(flight);
 				
 				// Delete existing map
 				if (map && map.remove) {
@@ -269,12 +276,14 @@
 				const fileList = event.target.files;
 				const reader = new FileReader();
 				reader.addEventListener('load', (event) => {
+					let flight = new Flight("flight");
+					flight.load_igc_file(event.target.result);
 					current_file = IGCParser(event.target.result);
-					update_map(current_file);
+					update_map(flight);
 				});
 				reader.readAsText(fileList[0]);
 			});
-			
+						
 			// Create map layers
 			var GeoportailFrance_plan = L.tileLayer('https://wxs.ign.fr/{apikey}/geoportail/wmts?REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&STYLE={style}&TILEMATRIXSET=PM&FORMAT={format}&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}', {
 				attribution: '<a target="_blank" href="https://www.geoportail.gouv.fr/">Geoportail France</a>',
