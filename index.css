@@ -179,3 +179,7 @@
 table, th, td {
     border-collapse: collapse;
 }
+
+.line_title {
+    border-bottom: solid;
+}

@@ -88,7 +88,7 @@
 				paragliding_info.calculate_finesse();
 				
 				// Process terrain elevation
-				let locations = paragliding_info.get_terrain_elevation(200);
+				let locations = paragliding_info.get_positions_by_group(200);
 				let elevations = await get_terrain_elevation(locations);
 				paragliding_info.set_terrain_elevation(elevations);
 
