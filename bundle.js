@@ -248,13 +248,8 @@ class ParaglidingPoint {
     }
 
     max_speed() {
-      let speed_max = this[0].speed;
-      for(let i=1; i<this.length(); i++) {
-        if(this[i].speed > speed_max) {
-          speed_max = this[i].speed;
-        }
-      }
-      return speed_max;
+      let speed = Object.values(this).map( point => point.speed);      
+      return Math.max(...speed);
     }
 
     // Vertical speed stats
@@ -271,23 +266,13 @@ class ParaglidingPoint {
     }
 
     max_vertical_speed() {
-      let speed_max = this[0].vertical_speed;
-      for(let i=1; i<this.length(); i++) {
-        if(this[i].vertical_speed > speed_max) {
-          speed_max = this[i].vertical_speed;
-        }
-      }
-      return speed_max;
+      let vertical_speed = Object.values(this).map( point => point.vertical_speed);      
+      return Math.max(...vertical_speed);
     }
 
     min_vertical_speed() {
-      let speed_min = this[0].vertical_speed;
-      for(let i=1; i<this.length(); i++) {
-        if(this[i].vertical_speed < speed_min) {
-          speed_min = this[i].vertical_speed;
-        }
-      }
-      return speed_min;
+      let vertical_speed = Object.values(this).map( point => point.vertical_speed);      
+      return Math.min(...vertical_speed);
     }
 
     // Finesse moyenne
@@ -308,13 +293,8 @@ class ParaglidingPoint {
     }
 
     elevation_max() {
-      let elevation_max = this[0].gpsAltitude;
-      for(let i=1; i<this.length(); i++) {
-        if(this[i].elevation > elevation_max) {
-          elevation_max = this[i].elevation;
-        }
-      }
-      return elevation_max;
+      let elevation = Object.values(this).map( point => point.gpsAltitude);      
+      return Math.max(...elevation);
     }
 
     elevation_over_start() {

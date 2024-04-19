@@ -181,5 +181,13 @@ table, th, td {
 }
 
 .line_title {
-    border-bottom: solid;
+    border-top: solid;
+}
+
+#first_line_title:hover {
+    cursor: pointer;
+}
+
+.icon {
+    font-family: Webdings;
 }
