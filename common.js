@@ -18,9 +18,15 @@ function click_info() {
 var play_index = 0;
 var auto_play_timer = 0;
 var play_time_period;
+var max_nb_points = 0;
 
 function play_cmd() {
     if (typeof paragliding_stats !== 'undefined') {
+        try {
+            max_nb_points = paragliding_stats.length();
+        } catch {
+            max_nb_points = flight.flight_info.number_of_point;
+        }
         if(auto_play_timer == 0) {
             document.getElementById("play_picture").style.backgroundImage="url(ressources/pause.png)";
             play();
@@ -46,7 +52,7 @@ function play() {
 
 function play_period() {
     play_index++;
-    if(play_index >= paragliding_stats.length()) {
+    if(play_index >= max_nb_points) {
         play_cmd();
     } else {
         update_position(play_index);
