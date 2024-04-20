@@ -142,15 +142,15 @@ function update_globals_infos(flight) {
     document.getElementById('flight_time').innerHTML = flight.flight_info.start_time;
     document.getElementById('logger').innerHTML = flight.flight_info.loggerType;
     document.getElementById('flight_duration').innerHTML = flight.flight_info.duration;
-    document.getElementById('flight_high').innerHTML = flight.flight_info.high + "m";
-    document.getElementById('flight_elevation').innerHTML = flight.flight_info.elevation_total + "m";
+    document.getElementById('flight_high').innerHTML = flight.flight_info.high.toFixed(0) + "m";
+    document.getElementById('flight_elevation').innerHTML = flight.flight_info.elevation_total.toFixed(0) + "m";
     
     document.getElementById('takeoff_time').innerHTML = flight.flight_info.start_time;
-    document.getElementById('takeoff_elevation').innerHTML = flight.flight_info.elevation_start + "m";
+    document.getElementById('takeoff_elevation').innerHTML = flight.flight_info.elevation_start.toFixed(0) + "m";
     document.getElementById('takeoff_position').innerHTML = flight.paragliding_info[0].latitude.toFixed(6) + ", " + flight.paragliding_info[0].longitude.toFixed(6);
 
     document.getElementById('landing_time').innerHTML = flight.flight_info.stop_time;
-    document.getElementById('landing_elevation').innerHTML = flight.flight_info.elevation_stop + "m";
+    document.getElementById('landing_elevation').innerHTML = flight.flight_info.elevation_stop.toFixed(0) + "m";
     document.getElementById('landing_position').innerHTML = flight.paragliding_info[flight.flight_info.number_of_point-1].latitude.toFixed(6) + ", " + flight.paragliding_info[flight.flight_info.number_of_point-1].longitude.toFixed(6);
     
     document.getElementById('distance').innerHTML = flight.flight_info.distance_total.toFixed(0) + "m";
@@ -161,8 +161,8 @@ function update_globals_infos(flight) {
     document.getElementById('average_vertical_speed').innerHTML = flight.flight_info.average_vertical_speed.toPrecision(2) + "m/s";
     document.getElementById('min_vertical_speed').innerHTML = flight.flight_info.min_vertical_speed.toPrecision(2) + "m/s";
     document.getElementById('max_vertical_speed').innerHTML = flight.flight_info.max_vertical_speed.toPrecision(2) + "m/s";
-    document.getElementById('elevation_max').innerHTML = flight.flight_info.elevation_max + "m";
-    document.getElementById('over_takeoff_elevation').innerHTML = flight.flight_info.elevation_over_start + "m";
+    document.getElementById('elevation_max').innerHTML = flight.flight_info.elevation_max.toFixed(0) + "m";
+    document.getElementById('over_takeoff_elevation').innerHTML = flight.flight_info.elevation_over_start.toFixed(0) + "m";
 }
 
 /* =========================================================================================================== */
