@@ -220,6 +220,50 @@ let vario_layout = {
     plot_bgcolor:"rgba(0, 0, 0, 0)",
 };
 
+// Create map layers
+var GeoportailFrance_plan = L.tileLayer('https://wxs.ign.fr/{apikey}/geoportail/wmts?REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&STYLE={style}&TILEMATRIXSET=PM&FORMAT={format}&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}', {
+    attribution: '<a target="_blank" href="https://www.geoportail.gouv.fr/">Geoportail France</a>',
+    bounds: [[-75, -180], [81, 180]],
+    minZoom: 2,
+    maxZoom: 18,
+    apikey: 'choisirgeoportail',
+    format: 'image/png',
+    style: 'normal'
+});
+var GeoportailFrance_orthos = L.tileLayer('https://wxs.ign.fr/{apikey}/geoportail/wmts?REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&STYLE={style}&TILEMATRIXSET=PM&FORMAT={format}&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}', {
+    attribution: '<a target="_blank" href="https://www.geoportail.gouv.fr/">Geoportail France</a>',
+    bounds: [[-75, -180], [81, 180]],
+    minZoom: 2,
+    maxZoom: 19,
+    apikey: 'choisirgeoportail',
+    format: 'image/jpeg',
+    style: 'normal'
+});
+var osm_fr = L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
+    maxZoom: 20,
+    attribution: '&copy; OpenStreetMap France | &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+});
+var OpenTopoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+    maxZoom: 17,
+    attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+});
+var Esri_WorldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+});
+var Green_background = L.tileLayer('ressources/green.png', {
+    attribution: 'Green'
+});
+
+// Create layer control for map
+var baseMaps = {
+    "GeoportailFrance_plan": GeoportailFrance_plan,
+    "GeoportailFrance_orthos": GeoportailFrance_orthos,
+    "OpenStreetMap_Fr": osm_fr,
+    "OpenTopoMap": OpenTopoMap,
+    "Esri_WorldImagery": Esri_WorldImagery,
+    "Green background": Green_background
+};
+
 /* =========================================================================================================== */
 /* ========================================== Refresh and update Map ========================================= */
 /* =========================================================================================================== */
@@ -260,14 +304,6 @@ function refresh_map(flight) {
         position: 'topright'
     }).addTo(map);
 
-    // Create layer control
-    var baseMaps = {
-        "GeoportailFrance_plan": GeoportailFrance_plan,
-        "GeoportailFrance_orthos": GeoportailFrance_orthos,
-        "OpenStreetMap_Fr": osm_fr,
-        "OpenTopoMap": OpenTopoMap,
-        "Esri_WorldImagery": Esri_WorldImagery
-    };
     var layerControl = L.control.layers(baseMaps).addTo(map);
 
     // Add icons
@@ -380,13 +416,16 @@ function refresh_map(flight) {
                             x: 0,
                             y: 1
                         }
+                    },
+                    {   // config
+                        displayModeBar: false
                     }
                 );
     elevation_graph.on('plotly_hover', function(data){
         update_position(data.points[0].pointIndex);
         });
     // Create speed graph
-    Plotly.newPlot('speed_gauge', gauge_data, gauge_layout);
+    Plotly.newPlot('speed_gauge', gauge_data, gauge_layout, { displayModeBar: false });
     // Create Vario
-    Plotly.newPlot('vario', vario_data, vario_layout);
+    Plotly.newPlot('vario', vario_data, vario_layout, { displayModeBar: false });
 }
