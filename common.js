@@ -1,14 +1,12 @@
 /* =========================================================================================================== */
 /* ============================================ Actions commandes ============================================ */
 /* =========================================================================================================== */
-function click_info() {
-    element = document.getElementById("title");
-    if(element.style.height != '') {	
-        element.style.removeProperty("height");
-        element.style.removeProperty("overflow");
+// Manage items visibility
+function visibility_checkbox_action(item) {
+    if(item.checked) {
+        document.getElementById(item.value).style.visibility = 'visible';
     } else {
-        element.style.height = '20px';
-        element.style.overflow = 'hidden';
+        document.getElementById(item.value).style.visibility = 'hidden';
     }
 }
 

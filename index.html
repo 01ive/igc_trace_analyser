@@ -19,7 +19,7 @@
 	<body>
 		<div id="title">
 			<table>
-				<tr class="line_title" id="first_line_title" onclick="click_info()"><td>GENERAL INFOS</td><td></td><td class="icon">&#54;</td></tr>
+				<tr class="line_title"><td>GENERAL INFOS</td></tr>
 				<tr><td>date</td><td id="flight_date">__:__:__</td></tr>
 				<tr><td>time</td><td id="flight_time">----</td></tr>
 				<tr><td>logger</td><td id="logger">----</td></tr>
@@ -56,6 +56,14 @@
 		</div>
 		<div id="play_stop_button"><div id="play_picture" onclick="play_cmd()"></div></div>
 		<div id="speed_button"><div id="speed_picture" onclick="speed_cmd()"></div></div>
+		<div id="visibility_button"><div id="visibility_picture" onmouseover="document.getElementById('visibility_menu').style.visibility = 'visible'"></div></div>
+		<div id="visibility_menu" onmouseleave="this.style.visibility = 'hidden'">
+			<label><input type="checkbox" id="chkbx_title" value="title" checked onclick='visibility_checkbox_action(this);'>Global infos</label><br>
+			<label><input type="checkbox" id="chkbx_speed_gauge" value="speed_gauge" checked onclick='visibility_checkbox_action(this);'>Speed gauge</label><br>
+			<label><input type="checkbox" id="chkbx_vario" value="vario" checked onclick='visibility_checkbox_action(this);'>Variometer</label><br>
+			<label><input type="checkbox" id="chkbx_elevation" value="elevation" checked onclick='visibility_checkbox_action(this);'>Elevation</label><br>			
+			<label><input type="checkbox" id="chkbx_text" value="text" checked onclick='visibility_checkbox_action(this);'>Global infos</label><br>
+		</div>
 		<div id="map"></div>
 		<div id="elevation"></div>
 		<div id="speed_gauge"></div>
