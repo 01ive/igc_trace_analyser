@@ -17,7 +17,7 @@
 	</head>
 
 	<body>
-		<div id="title">
+		<div id="title" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)">
 			<table>
 				<tr class="line_title"><td>GENERAL INFOS</td></tr>
 				<tr><td>date</td><td id="flight_date">__:__:__</td></tr>
@@ -62,13 +62,13 @@
 			<label><input type="checkbox" id="chkbx_speed_gauge" value="speed_gauge" checked onclick='visibility_checkbox_action(this);'>Speed gauge</label><br>
 			<label><input type="checkbox" id="chkbx_vario" value="vario" checked onclick='visibility_checkbox_action(this);'>Variometer</label><br>
 			<label><input type="checkbox" id="chkbx_elevation" value="elevation" checked onclick='visibility_checkbox_action(this);'>Elevation</label><br>			
-			<label><input type="checkbox" id="chkbx_text" value="text" checked onclick='visibility_checkbox_action(this);'>Global infos</label><br>
+			<label><input type="checkbox" id="chkbx_text" value="point_info" checked onclick='visibility_checkbox_action(this);'>Global infos</label><br>
 		</div>
 		<div id="map"></div>
-		<div id="elevation"></div>
-		<div id="speed_gauge"></div>
-		<div id="vario"></div>
-		<div id="text">
+		<div id="elevation" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)"></div>
+		<div id="speed_gauge" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)"></div>
+		<div id="vario" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)"></div>
+		<div id="point_info" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)">
 				<div>time&nbsp;</div><div id="point_info_time">__:__:__</div>
 				<div>elevation (gps)&nbsp;</div><div id="point_info_elevation_gps">----</div>
 				<div>terrain&nbsp;</div><div id="point_info_terrain">----</div>

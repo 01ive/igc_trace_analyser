@@ -5,9 +5,28 @@
 function visibility_checkbox_action(item) {
     if(item.checked) {
         document.getElementById(item.value).style.visibility = 'visible';
+        document.getElementById(item.value).style.zIndex = 5;
     } else {
         document.getElementById(item.value).style.visibility = 'hidden';
+        document.getElementById(item.value).style.zIndex = -5;
     }
+}
+
+// Manage draggable items
+var drag_offset_X;
+var drag_offset_Y;
+function dragstart(elem) {
+    evt = window.event;
+    drag_offset_X = elem.offsetLeft - evt.x;
+    drag_offset_Y = elem.offsetTop - evt.y;
+    elem.style.bottom = 'unset';
+}
+function dragend(elem) {
+    evt = window.event;
+    let pos_x = evt.x + drag_offset_X;
+    let pos_y = evt.y + drag_offset_Y;
+    elem.style.left = pos_x + 'px';
+    elem.style.top = pos_y + 'px';
 }
 
 /* =========================================================================================================== */
