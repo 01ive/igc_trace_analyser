@@ -50,19 +50,24 @@
 				<tr><td>max takeoff elevation</td><td id="over_takeoff_elevation">----</td></tr>
 			</table>	
 		</div>
-		<div id="menu_button">
-			<label id="my-file-selector" for="file-selector"></label>
-			<input type="file" id="file-selector" accept=".igc">
-		</div>
-		<div id="play_stop_button"><div id="play_picture" onclick="play_cmd()"></div></div>
-		<div id="speed_button"><div id="speed_picture" onclick="speed_cmd()"></div></div>
-		<div id="visibility_button"><div id="visibility_picture" onmouseover="document.getElementById('visibility_menu').style.visibility = 'visible'"></div></div>
-		<div id="visibility_menu" onmouseleave="this.style.visibility = 'hidden'">
-			<label><input type="checkbox" id="chkbx_title" value="title" checked onclick='visibility_checkbox_action(this);'>Global infos</label><br>
-			<label><input type="checkbox" id="chkbx_speed_gauge" value="speed_gauge" checked onclick='visibility_checkbox_action(this);'>Speed gauge</label><br>
-			<label><input type="checkbox" id="chkbx_vario" value="vario" checked onclick='visibility_checkbox_action(this);'>Variometer</label><br>
-			<label><input type="checkbox" id="chkbx_elevation" value="elevation" checked onclick='visibility_checkbox_action(this);'>Elevation</label><br>			
-			<label><input type="checkbox" id="chkbx_text" value="point_info" checked onclick='visibility_checkbox_action(this);'>Global infos</label><br>
+		<div id="control_buttons">
+			<div id="menu_button">
+				<label id="my-file-selector" for="file-selector"></label>
+				<input type="file" id="file-selector" accept=".igc">
+			</div>
+			<div id="play_stop_button"><div id="play_picture" onclick="play_cmd()"></div></div>
+			<div id="speed_button"><div id="speed_picture" onclick="speed_cmd()"></div></div>
+			<div id="visibility_button"><div id="visibility_picture" onmouseover="document.getElementById('visibility_menu').style.visibility = 'visible'"></div></div>
+			<div id="visibility_menu" onmouseleave="this.style.visibility = 'hidden'">
+				<label><input type="checkbox" id="chkbx_title" value="title" checked onclick='visibility_checkbox_action(this);'>Global infos</label><br>
+				<label><input type="checkbox" id="chkbx_speed_gauge" value="speed_gauge" checked onclick='visibility_checkbox_action(this);'>Speed gauge</label><br>
+				<label><input type="checkbox" id="chkbx_vario" value="vario" checked onclick='visibility_checkbox_action(this);'>Variometer</label><br>
+				<label><input type="checkbox" id="chkbx_elevation" value="elevation" checked onclick='visibility_checkbox_action(this);'>Elevation</label><br>			
+				<label><input type="checkbox" id="chkbx_text" value="point_info" checked onclick='visibility_checkbox_action(this);'>Global infos</label><br>
+				<label><input type="checkbox" id="chkbx_zoom_control" value="zoom_control" checked onclick='visibility_checkbox_action(this);'>Zoom control</label><br>
+				<label><input type="checkbox" id="chkbx_layer_control" value="layer_control" checked onclick='visibility_checkbox_action(this);'>Map layer control</label><br>
+				<label><input type="checkbox" id="chkbx_control_buttons" value="control_buttons" checked onclick='visibility_checkbox_action(this);'>Control buttons</label><br>
+			</div>
 		</div>
 		<div id="map"></div>
 		<div id="elevation" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)"></div>

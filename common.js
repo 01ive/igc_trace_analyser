@@ -29,6 +29,15 @@ function dragend(elem) {
     elem.style.top = pos_y + 'px';
 }
 
+// Keyboard commands
+function key_commands(k) {
+    if(k.key.toLowerCase() == 'p') {
+        play_cmd();
+    } else if(k.key.toLowerCase() == 'v') {
+        document.getElementById("control_buttons").style.visibility='visible';
+        document.getElementById("chkbx_control_buttons").checked = true;
+    }
+}
 /* =========================================================================================================== */
 /* =========================================== Auto play functions =========================================== */
 /* =========================================================================================================== */
@@ -317,12 +326,27 @@ function refresh_map(flight) {
         zoomControl: false
     });
 
-    L.control.zoom({
+    var zoom_control = L.control.zoom({
         position: 'topright'
     }).addTo(map);
+    var zoom_control_container = zoom_control.getContainer();
+    zoom_control_container.id = "zoom_control";
 
-    var layerControl = L.control.layers(baseMaps).addTo(map);
+    var layer_control = L.control.layers(baseMaps).addTo(map);
+    var layerControl_container = layer_control.getContainer();
+    layerControl_container.id = "layer_control";
 
+    // Display all elements
+    document.getElementById('play_stop_button').style.visibility = 'unset';
+    document.getElementById('speed_button').style.visibility = 'unset';
+    document.getElementById('visibility_button').style.visibility = 'unset';
+    document.getElementById('title').style.visibility = 'unset';
+    document.getElementById('point_info').style.visibility = 'unset';
+    document.getElementById('elevation').style.visibility = 'unset';
+
+    // Create events for key press
+    window.addEventListener("keypress", (k) => key_commands(k));
+    
     // Add icons
     var last_item = Object.keys(paragliding_stats).length-1 ;
     var start_icon = L.icon({iconUrl: 'ressources/marker-icon-g.png', iconSize: [25, 41], iconAnchor: [12, 41]});
