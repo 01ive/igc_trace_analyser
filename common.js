@@ -337,13 +337,19 @@ function refresh_map(flight) {
     layerControl_container.id = "layer_control";
 
     // Display all elements
+    document.getElementById('title').style.visibility = 'unset';
+    document.getElementById('speed_gauge').style.visibility = 'unset';
+    document.getElementById('vario').style.visibility = 'unset';
+    document.getElementById('elevation').style.visibility = 'unset';
+    document.getElementById('point_info').style.visibility = 'unset';
+    document.getElementById('zoom_control').style.visibility = 'unset';
+    document.getElementById('layer_control').style.visibility = 'unset';
+    document.getElementById('control_buttons').style.visibility = 'unset';
+    document.getElementById('visibility_button').style.visibility = 'unset';
     document.getElementById('play_stop_button').style.visibility = 'unset';
     document.getElementById('speed_button').style.visibility = 'unset';
-    document.getElementById('visibility_button').style.visibility = 'unset';
-    document.getElementById('title').style.visibility = 'unset';
-    document.getElementById('point_info').style.visibility = 'unset';
-    document.getElementById('elevation').style.visibility = 'unset';
-
+    
+    
     // Create events for key press
     window.addEventListener("keypress", (k) => key_commands(k));
     
