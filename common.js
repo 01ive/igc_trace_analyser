@@ -156,7 +156,9 @@ function display_stats(point) {
     document.getElementById("point_info_time").innerHTML = point.time;
     document.getElementById("point_info_elevation_gps").innerHTML = point.gpsAltitude.toPrecision(4) + "m";
     document.getElementById("point_info_terrain").innerHTML = point.terrain_elevation.toPrecision(4) + "m";
-    document.getElementById("point_info_elevation_pressure").innerHTML = point.pressureAltitude.toPrecision(4) + "m";
+    if(point.pressureAltitud != null) {
+        document.getElementById("point_info_elevation_pressure").innerHTML = point.pressureAltitude.toPrecision(4) + "m";
+    }
     document.getElementById("point_info_distance").innerHTML = point.distance_total.toPrecision(4) + "m";
     document.getElementById("point_info_finesse").innerHTML = point.finesse.toPrecision(4);
     document.getElementById("point_info_bearing").innerHTML = point.bearing.toPrecision(4) + "°N";
