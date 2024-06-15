@@ -151,13 +151,31 @@ function get_distance(paragliding_data) {
     return [distance, min, max];
 }
 
+function get_speed(paragliding_data) {
+    let speed_data = Object.values(paragliding_data).map( item => item.speed);
+    let min = Math.min(...speed_data);
+    let max = Math.max(...speed_data);
+    
+    return [speed_data, min, max];
+}
+
+function get_vertical_speed(paragliding_data) {
+    let vertical_speed_data = Object.values(paragliding_data).map( item => item.vertical_speed);
+    let min = Math.min(...vertical_speed_data);
+    let max = Math.max(...vertical_speed_data);
+    
+    return [vertical_speed_data, min, max];
+}
+
 // Refresh point stats
 function display_stats(point) {
     document.getElementById("point_info_time").innerHTML = point.time;
     document.getElementById("point_info_elevation_gps").innerHTML = point.gpsAltitude.toPrecision(4) + "m";
     document.getElementById("point_info_terrain").innerHTML = point.terrain_elevation.toPrecision(4) + "m";
-    if(point.pressureAltitud != null) {
+    if(point.pressureAltitude != null) {
         document.getElementById("point_info_elevation_pressure").innerHTML = point.pressureAltitude.toPrecision(4) + "m";
+    } else {
+        document.getElementById("point_info_elevation_pressure").innerHTML = "----";
     }
     document.getElementById("point_info_distance").innerHTML = point.distance_total.toPrecision(4) + "m";
     document.getElementById("point_info_finesse").innerHTML = point.finesse.toPrecision(4);
@@ -397,8 +415,10 @@ function refresh_map(flight) {
     // Create elevation graph
     let [elevation_data, elevation_min, elevation_max, terrain_elevation] = get_elevation(paragliding_stats);
     let [distance_data, distance_min, distance_max] = get_distance(paragliding_stats);
-    let speed_data = Object.values(paragliding_stats).map( item => item.speed);
-    let vertical_speed_data = Object.values(paragliding_stats).map( item => item.vertical_speed);
+
+    let [speed_data, speed_data_min, speed_data_max] = get_speed(paragliding_stats);
+    let [vertical_speed_data, vertical_speed_data_min, vertical_speed_data_max] = get_vertical_speed(paragliding_stats);
+
     elevation_graph = document.getElementById('elevation');
     Plotly.newPlot( elevation_graph, 
                     [{x: distance_data, y: elevation_data, name: "elevation", hoverinfo: "none", yaxis: 'y4'}, // Defining y4 axis allows to have mouse hover linked to elevation_data
@@ -437,11 +457,11 @@ function refresh_map(flight) {
                             showgrid: false,
                         },
                         yaxis2: {
-                            range: [0, 60],
+                            range: [speed_data_min-5, speed_data_max+5],
                             showgrid: false
                         },
                         yaxis3: {
-                            range: [-5, 5],
+                            range: [vertical_speed_data_min-1, vertical_speed_data_max+1],
                             showgrid: false,
                             visible: false,
                             showline: false,

@@ -120,14 +120,12 @@
 		
 			// Load file button
 			const fileSelector = document.getElementById('file-selector');
-			let current_file;
 			fileSelector.addEventListener('change', (event) => {
 				const fileList = event.target.files;
 				const reader = new FileReader();
 				reader.addEventListener('load', (event) => {
 					let flight = new Flight("flight");
-					flight.load_igc_file(event.target.result);
-					current_file = IGCParser(event.target.result);
+					flight.load_file(event.target.result, '.' + fileList[0].name.split('.').pop().toLowerCase());
 					update_map(flight);
 				});
 				reader.readAsText(fileList[0]);
