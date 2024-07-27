@@ -107,6 +107,7 @@ class Flight {
         this.paragliding_info.calculate_speeds();
         this.paragliding_info.calculate_bearing();
         this.paragliding_info.calculate_finesse();
+        this.paragliding_info.calculate_duration();
         // Process flight info
         this.flight_info.number_of_point = this.paragliding_info.length();
         
@@ -243,6 +244,13 @@ class ParaglidingPoint {
         } else {
           this[i].finesse = this[i].distance / (this[i].gpsAltitude - this[i-1].gpsAltitude);
         }
+      }
+    }
+
+    calculate_duration() {
+      this[0].duration = 0;
+      for(let i=1; i<this.length(); i++) {
+        this[i].duration = s_to_time(ms_to_s(this[i].timestamp - this[0].timestamp));
       }
     }
   

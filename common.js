@@ -115,13 +115,6 @@ function update_position(position_index) {
     cursor.setLatLng(latlng);
     // Update info
     display_stats(paragliding_stats[position_index]);
-    // Update speed
-    gauge_data[0].value = paragliding_stats[position_index].speed;
-    Plotly.update('speed_gauge', gauge_data[0]);
-    // Update vario
-    vario_data[0].value = paragliding_stats[position_index].vertical_speed;
-    vario_data[0].delta.reference = paragliding_stats[(position_index==0 ? 0 : position_index-1)].vertical_speed;
-    Plotly.update('vario', vario_data[0]);
     // Update elevation
     let updt = {color: 'red'};
     elevation_graph.layout.shapes[0].x0=paragliding_stats[position_index].distance_total;
@@ -169,14 +162,11 @@ function get_vertical_speed(paragliding_data) {
 
 // Refresh point stats
 function display_stats(point) {
-    document.getElementById("point_info_time").innerHTML = point.time;
+    document.getElementById("point_info_time").innerHTML = point.duration;
     document.getElementById("point_info_elevation_gps").innerHTML = point.gpsAltitude.toPrecision(4) + "m";
     document.getElementById("point_info_terrain").innerHTML = point.terrain_elevation.toPrecision(4) + "m";
-    if(point.pressureAltitude != null) {
-        document.getElementById("point_info_elevation_pressure").innerHTML = point.pressureAltitude.toPrecision(4) + "m";
-    } else {
-        document.getElementById("point_info_elevation_pressure").innerHTML = "----";
-    }
+    document.getElementById("point_info_speed").innerHTML = point.speed.toPrecision(3) + "km/h";
+    document.getElementById("point_info_vario").innerHTML = point.vertical_speed.toPrecision(2) + "m/s";
     document.getElementById("point_info_distance").innerHTML = point.distance_total.toPrecision(4) + "m";
     document.getElementById("point_info_finesse").innerHTML = point.finesse.toPrecision(4);
     document.getElementById("point_info_bearing").innerHTML = point.bearing.toPrecision(4) + "°N";
@@ -214,58 +204,6 @@ function update_globals_infos(flight) {
 /* =========================================================================================================== */
 /* ======================================== User Interface parameters ======================================== */
 /* =========================================================================================================== */
-// Speed gauge
-let gauge_data = [
-    {
-        domain: { x: [0, 1], y: [0, 1] },
-        value: 0,
-        title: { text: "Speed km/h", font: {size: 14} },
-        type: "indicator",
-        mode: "gauge+number",
-        gauge: {
-              axis: { range: [null, 60, 10] }
-        }
-    }
-];
-let gauge_layout = { width: 150, height: 150,
-                        margin: {
-                            autoexpand: true,
-                            b: 0,
-                            l: 25,
-                            pad: 500,
-                            r: 25,
-                            t: 0 
-                        },
-                        paper_bgcolor:"rgba(0, 0, 0, 0)",
-                        plot_bgcolor:"rgba(0, 0, 0, 0)",
-                    };
-// Vario digital display
-let vario_data = [
-    {
-        title: { text: "Vario", font: { size: 14 } },
-        type: "indicator",
-        mode: "number+delta",
-        value: 300,
-        number: { suffix: " m/s", font: { size: 20 } },
-        delta: { position: "down", reference: 320, font: { size: 20 } },
-        domain: { x: [0, 1], y: [0, 1] }
-    }
-];
-let vario_layout = {
-    width: 120,
-    height: 120,
-    margin: { 
-                autoexpand: 0,
-                b: 0,
-                l: 25,
-                pad: 500,
-                r: 25,
-                t: 0 
-            },
-    paper_bgcolor:"rgba(0, 0, 0, 0)",
-    plot_bgcolor:"rgba(0, 0, 0, 0)",
-};
-
 // Create map layers
 var GeoportailFrance_plan = L.tileLayer('https://wxs.ign.fr/{apikey}/geoportail/wmts?REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&STYLE={style}&TILEMATRIXSET=PM&FORMAT={format}&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}', {
     attribution: '<a target="_blank" href="https://www.geoportail.gouv.fr/">Geoportail France</a>',
@@ -358,8 +296,6 @@ function refresh_map(flight) {
 
     // Display all elements
     document.getElementById('title').style.visibility = 'unset';
-    document.getElementById('speed_gauge').style.visibility = 'unset';
-    document.getElementById('vario').style.visibility = 'unset';
     document.getElementById('elevation').style.visibility = 'unset';
     document.getElementById('point_info').style.visibility = 'unset';
     document.getElementById('zoom_control').style.visibility = 'unset';
@@ -493,8 +429,4 @@ function refresh_map(flight) {
     elevation_graph.on('plotly_hover', function(data){
         update_position(data.points[0].pointIndex);
         });
-    // Create speed graph
-    Plotly.newPlot('speed_gauge', gauge_data, gauge_layout, { displayModeBar: false });
-    // Create Vario
-    Plotly.newPlot('vario', vario_data, vario_layout, { displayModeBar: false });
 }

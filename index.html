@@ -21,7 +21,7 @@
 			<table>
 				<tr class="line_title"><td>GENERAL INFOS</td></tr>
 				<tr><td>date</td><td id="flight_date">__:__:__</td></tr>
-				<tr><td>time</td><td id="flight_time">----</td></tr>
+				<tr><td>time (utc)</td><td id="flight_time">----</td></tr>
 				<tr><td>logger</td><td id="logger">----</td></tr>
 				<tr><td>duration</td><td id="flight_duration">----</td></tr>
 				<tr><td>high</td><td id="flight_high">----</td></tr>
@@ -60,8 +60,6 @@
 			<div id="visibility_button"><div id="visibility_picture" onmouseover="document.getElementById('visibility_menu').style.visibility = 'visible'"></div></div>
 			<div id="visibility_menu" onmouseleave="this.style.visibility = 'hidden'">
 				<label><input type="checkbox" id="chkbx_title" value="title" checked onclick='visibility_checkbox_action(this);'>Global infos</label><br>
-				<label><input type="checkbox" id="chkbx_speed_gauge" value="speed_gauge" checked onclick='visibility_checkbox_action(this);'>Speed gauge</label><br>
-				<label><input type="checkbox" id="chkbx_vario" value="vario" checked onclick='visibility_checkbox_action(this);'>Variometer</label><br>
 				<label><input type="checkbox" id="chkbx_elevation" value="elevation" checked onclick='visibility_checkbox_action(this);'>Elevation</label><br>			
 				<label><input type="checkbox" id="chkbx_text" value="point_info" checked onclick='visibility_checkbox_action(this);'>Global infos</label><br>
 				<label><input type="checkbox" id="chkbx_zoom_control" value="zoom_control" checked onclick='visibility_checkbox_action(this);'>Zoom control</label><br>
@@ -71,13 +69,12 @@
 		</div>
 		<div id="map"></div>
 		<div id="elevation" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)"></div>
-		<div id="speed_gauge" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)"></div>
-		<div id="vario" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)"></div>
 		<div id="point_info" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)">
-				<div>time&nbsp;</div><div id="point_info_time">__:__:__</div>
+				<div>duration&nbsp;</div><div id="point_info_time">__:__:__</div>
 				<div>elevation (gps)&nbsp;</div><div id="point_info_elevation_gps">----</div>
 				<div>terrain&nbsp;</div><div id="point_info_terrain">----</div>
-				<div>elevation (pressure)&nbsp;</div><div id="point_info_elevation_pressure">----</div>
+				<div>speed&nbsp;</div><div id="point_info_speed">----</div>
+				<div>vario&nbsp;</div><div id="point_info_vario">----</div>
 				<div>distance&nbsp;</div><div id="point_info_distance">----</div>
 				<div>finesse&nbsp;</div><div id="point_info_finesse">----</div>
 				<div>bearing&nbsp;</div><div id="point_info_bearing">----</div>

@@ -140,21 +140,6 @@
     visibility: hidden;
 }
 
-#speed_gauge {
-    position: absolute;
-    bottom: 20vh;
-    z-index: 5;
-    cursor: move;
-}
-
-#vario {
-    position: absolute;
-    bottom: 20vh;
-    right: 0;
-    z-index: 5;
-    cursor: move;
-}
-
 #point_info {
     position: absolute;
     bottom: 0;
@@ -173,7 +158,7 @@
     visibility: hidden;
 }
 
-#point_info_time, #point_info_elevation_gps, #point_info_elevation_pressure, #point_info_distance, #point_info_finesse, #point_info_bearing, #point_info_terrain {
+#point_info_time, #point_info_elevation_gps, #point_info_distance, #point_info_finesse, #point_info_bearing, #point_info_terrain, #point_info_speed, #point_info_vario {
     flex: 1 0 auto;
     display: flex;
 }
@@ -182,6 +167,12 @@
 }
 #point_info_terrain {
     color: orange;
+}
+#point_info_speed {
+    color: green;
+}
+#point_info_vario {
+    color: brown;
 }
 
 #title {
