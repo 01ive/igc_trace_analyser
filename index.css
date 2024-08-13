@@ -140,6 +140,21 @@
     visibility: hidden;
 }
 
+#speed_gauge {
+    position: absolute;
+    bottom: 20vh;
+    z-index: 5;
+    cursor: move;
+}
+
+#vario {
+    position: absolute;
+    bottom: 20vh;
+    right: 0;
+    z-index: 5;
+    cursor: move;
+}
+
 #point_info {
     position: absolute;
     bottom: 0;

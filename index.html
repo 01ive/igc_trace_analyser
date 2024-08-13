@@ -62,6 +62,8 @@
 				<label><input type="checkbox" id="chkbx_title" value="title" checked onclick='visibility_checkbox_action(this);'>Global infos</label><br>
 				<label><input type="checkbox" id="chkbx_elevation" value="elevation" checked onclick='visibility_checkbox_action(this);'>Elevation</label><br>			
 				<label><input type="checkbox" id="chkbx_text" value="point_info" checked onclick='visibility_checkbox_action(this);'>Global infos</label><br>
+				<label><input type="checkbox" id="chkbx_speed_gauge" value="speed_gauge" checked onclick='visibility_checkbox_action(this);'>Speed gauge</label><br>
+				<label><input type="checkbox" id="chkbx_vario" value="vario" checked onclick='visibility_checkbox_action(this);'>Variometer</label><br>
 				<label><input type="checkbox" id="chkbx_zoom_control" value="zoom_control" checked onclick='visibility_checkbox_action(this);'>Zoom control</label><br>
 				<label><input type="checkbox" id="chkbx_layer_control" value="layer_control" checked onclick='visibility_checkbox_action(this);'>Map layer control</label><br>
 				<label><input type="checkbox" id="chkbx_control_buttons" value="control_buttons" checked onclick='visibility_checkbox_action(this);'>Control buttons</label><br>
@@ -69,6 +71,8 @@
 		</div>
 		<div id="map"></div>
 		<div id="elevation" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)"></div>
+		<div id="speed_gauge" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)"></div>
+		<div id="vario" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)"></div>
 		<div id="point_info" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)">
 				<div>duration&nbsp;</div><div id="point_info_time">__:__:__</div>
 				<div>elevation (gps)&nbsp;</div><div id="point_info_elevation_gps">----</div>
