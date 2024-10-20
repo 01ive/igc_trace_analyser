@@ -263,7 +263,7 @@ let vario_layout = {
     plot_bgcolor:"rgba(0, 0, 0, 0)",
 };
 // Create map layers
-var GeoportailFrance_plan = L.tileLayer('https://wxs.ign.fr/{apikey}/geoportail/wmts?REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&STYLE={style}&TILEMATRIXSET=PM&FORMAT={format}&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}', {
+var GeoportailFrance_plan = L.tileLayer('https://data.geopf.fr/wmts?REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&STYLE={style}&TILEMATRIXSET=PM&FORMAT={format}&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}', {
     attribution: '<a target="_blank" href="https://www.geoportail.gouv.fr/">Geoportail France</a>',
     bounds: [[-75, -180], [81, 180]],
     minZoom: 2,
@@ -272,7 +272,7 @@ var GeoportailFrance_plan = L.tileLayer('https://wxs.ign.fr/{apikey}/geoportail/
     format: 'image/png',
     style: 'normal'
 });
-var GeoportailFrance_orthos = L.tileLayer('https://wxs.ign.fr/{apikey}/geoportail/wmts?REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&STYLE={style}&TILEMATRIXSET=PM&FORMAT={format}&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}', {
+var GeoportailFrance_orthos = L.tileLayer('https://data.geopf.fr/wmts?REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&STYLE={style}&TILEMATRIXSET=PM&FORMAT={format}&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}', {
     attribution: '<a target="_blank" href="https://www.geoportail.gouv.fr/">Geoportail France</a>',
     bounds: [[-75, -180], [81, 180]],
     minZoom: 2,

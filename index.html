@@ -101,7 +101,7 @@
 				try {
 					let elevations_requests = [];
 					for(i in locations) {
-						elevations_requests[i] = get('https://wxs.ign.fr/calcul/alti/rest/elevation.json?' + locations[i] + '&zonly=true');
+						elevations_requests[i] = get('https://data.geopf.fr/altimetrie/1.0/calcul/alti/rest/elevation.json?' + locations[i] + '&resource=ign_rge_alti_wld&zonly=true');
 					}
 					elevations = await Promise.all(elevations_requests);
 					elevations = [].concat(...elevations);
