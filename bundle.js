@@ -52,7 +52,7 @@ class Flight {
     }
 
     load_igc_file(file_content) {
-        let igc_obj = IGCParser.parse(file_content);
+        let igc_obj = IGCParser.parse(file_content, {parseComments: true});
         
         // Calculate center of map coordinates
         this.middle_index = Math.floor(igc_obj.fixes.length/2);
@@ -481,11 +481,17 @@ var RE_SIT_HEADER = /^H(\w)SIT(?:.{0,}?:(.*)|(.*))$/;
 var RE_FTY_HEADER = /^H(\w)FTY(?:.{0,}?:(.*)|(.*))$/;
 var RE_RFW_HEADER = /^H(\w)RFW(?:.{0,}?:(.*)|(.*))$/;
 var RE_RHW_HEADER = /^H(\w)RHW(?:.{0,}?:(.*)|(.*))$/;
+var RE_TZN_HEADER = /^H(\w)TZN(?:.{0,}?:([-+]?[\d.]+))$/;
+var RE_DTM_HEADER = /^H(\w)DTM(?:.{0,}?:(.*)|(.*))$/;
+var RE_ALG_HEADER = /^H(\w)ALG(?:.{0,}?:(.*)|(.*))$/;
+var RE_ALP_HEADER = /^H(\w)ALP(?:.{0,}?:(.*)|(.*))$/;
 var RE_B = /^B(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{3})([NS])(\d{3})(\d{2})(\d{3})([EW])([AV])(-\d{4}|\d{5})(-\d{4}|\d{5})/;
 var RE_K = /^K(\d{2})(\d{2})(\d{2})/;
 var RE_IJ = /^[IJ](\d{2})(?:\d{2}\d{2}[A-Z]{3})+/;
+var RE_L = /^[L]([A-Z]{3})(.+)/;
 var RE_TASK = /^C(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{4})([-\d]{2})(.*)/;
 var RE_TASKPOINT = /^C(\d{2})(\d{2})(\d{3})([NS])(\d{3})(\d{2})(\d{3})([EW])(.*)/;
+var RE_INT = /^\d*$/;
 /* tslint:enable:max-line-length */
 var VALID_DATA_SOURCES = ['F', 'O', 'P'];
 var IGCParser = /** @class */ (function () {
@@ -502,9 +508,13 @@ var IGCParser = /** @class */ (function () {
             loggerType: null,
             firmwareVersion: null,
             hardwareVersion: null,
+            geoDatum: null,
+            geoDatumAlgorithm: null,
+            geoPressureAlgorithm: null,
             task: null,
             fixes: [],
             dataRecords: [],
+            commentRecords: [],
             security: null,
             errors: [],
         };
@@ -582,6 +592,9 @@ var IGCParser = /** @class */ (function () {
         else if (recordType === 'J') {
             this.dataExtensions = this.parseIJRecord(line);
         }
+        else if (recordType === 'L' && this.options.parseComments) {
+            this._result.commentRecords.push(this.parseLRecord(line));
+        }
         else if (recordType === 'G') {
             this._result.security = (this._result.security || '') + line.slice(1);
         }
@@ -616,6 +629,9 @@ var IGCParser = /** @class */ (function () {
         else if (headerType === 'SIT') {
             this._result.site = this.parseSite(line);
         }
+        else if (headerType === 'TZN') {
+            this._result.timezone = this.parseTimezone(line);
+        }
         else if (headerType === 'FTY') {
             this._result.loggerType = this.parseLoggerType(line);
         }
@@ -624,6 +640,15 @@ var IGCParser = /** @class */ (function () {
         }
         else if (headerType === 'RHW') {
             this._result.hardwareVersion = this.parseHardwareVersion(line);
+        }
+        else if (headerType === 'DTM') {
+            this._result.geoDatum = this.parseGeoDatum(line);
+        }
+        else if (headerType === 'ALG') {
+            this._result.geoDatumAlgorithm = this.parseGeoDatumAlgorithm(line);
+        }
+        else if (headerType === 'ALP') {
+            this._result.geoPressureAlgorithm = this.parseGeoPressureAlgorithm(line);
         }
     };
     IGCParser.prototype.parseARecord = function (line) {
@@ -641,15 +666,15 @@ var IGCParser = /** @class */ (function () {
             var additionalData = match[2] ? match[2].trim() : null;
             return { manufacturer: manufacturer, loggerId: null, numFlight: null, additionalData: additionalData };
         }
-        throw new Error("Invalid A record at line " + this.lineNumber + ": " + line);
+        throw new Error("Invalid A record at line ".concat(this.lineNumber, ": ").concat(line));
     };
     IGCParser.prototype.parseDateHeader = function (line) {
         var match = line.match(RE_HFDTE);
         if (!match) {
-            throw new Error("Invalid DTE header at line " + this.lineNumber + ": " + line);
+            throw new Error("Invalid DTE header at line ".concat(this.lineNumber, ": ").concat(line));
         }
         var lastCentury = match[3][0] === '8' || match[3][0] === '9';
-        var date = "" + (lastCentury ? '19' : '20') + match[3] + "-" + match[2] + "-" + match[1];
+        var date = "".concat(lastCentury ? '19' : '20').concat(match[3], "-").concat(match[2], "-").concat(match[1]);
         var numFlight = match[4] ? parseInt(match[4], 10) : null;
         return { date: date, numFlight: numFlight };
     };
@@ -657,11 +682,11 @@ var IGCParser = /** @class */ (function () {
         if (underscoreReplacement === void 0) { underscoreReplacement = ' '; }
         var match = line.match(regex);
         if (!match) {
-            throw new Error("Invalid " + headerType + " header at line " + this.lineNumber + ": " + line);
+            throw new Error("Invalid ".concat(headerType, " header at line ").concat(this.lineNumber, ": ").concat(line));
         }
         var dataSource = match[1];
         if (VALID_DATA_SOURCES.indexOf(dataSource) === -1 && !this.options.lenient) {
-            throw new Error("Invalid data source at line " + this.lineNumber + ": " + dataSource);
+            throw new Error("Invalid data source at line ".concat(this.lineNumber, ": ").concat(dataSource));
         }
         return (match[2] || match[3] || '').replace(/_/g, underscoreReplacement).trim();
     };
@@ -686,6 +711,13 @@ var IGCParser = /** @class */ (function () {
     IGCParser.prototype.parseSite = function (line) {
         return this.parseTextHeader('SIT', RE_SIT_HEADER, line);
     };
+    IGCParser.prototype.parseTimezone = function (line) {
+        var result = this.parseTextHeader('TZN', RE_TZN_HEADER, line);
+        var hours = parseFloat(result);
+        if (isNaN(hours))
+            throw new Error("Invalid TZN header at line ".concat(this.lineNumber, ": ").concat(line));
+        return hours;
+    };
     IGCParser.prototype.parseLoggerType = function (line) {
         return this.parseTextHeader('FTY', RE_FTY_HEADER, line);
     };
@@ -694,6 +726,15 @@ var IGCParser = /** @class */ (function () {
     };
     IGCParser.prototype.parseHardwareVersion = function (line) {
         return this.parseTextHeader('RHW', RE_RHW_HEADER, line);
+    };
+    IGCParser.prototype.parseGeoDatum = function (line) {
+        return this.parseTextHeader('FDT', RE_DTM_HEADER, line);
+    };
+    IGCParser.prototype.parseGeoDatumAlgorithm = function (line) {
+        return this.parseTextHeader('ALG', RE_ALG_HEADER, line);
+    };
+    IGCParser.prototype.parseGeoPressureAlgorithm = function (line) {
+        return this.parseTextHeader('ALP', RE_ALP_HEADER, line);
     };
     IGCParser.prototype.processTaskLine = function (line) {
         if (!this._result.task) {
@@ -706,16 +747,16 @@ var IGCParser = /** @class */ (function () {
     IGCParser.prototype.parseTask = function (line) {
         var match = line.match(RE_TASK);
         if (!match) {
-            throw new Error("Invalid task declaration at line " + this.lineNumber + ": " + line);
+            throw new Error("Invalid task declaration at line ".concat(this.lineNumber, ": ").concat(line));
         }
         var lastCentury = match[3][0] === '8' || match[3][0] === '9';
-        var declarationDate = "" + (lastCentury ? '19' : '20') + match[3] + "-" + match[2] + "-" + match[1];
-        var declarationTime = match[4] + ":" + match[5] + ":" + match[6];
-        var declarationTimestamp = Date.parse(declarationDate + "T" + declarationTime + "Z");
+        var declarationDate = "".concat(lastCentury ? '19' : '20').concat(match[3], "-").concat(match[2], "-").concat(match[1]);
+        var declarationTime = "".concat(match[4], ":").concat(match[5], ":").concat(match[6]);
+        var declarationTimestamp = Date.parse("".concat(declarationDate, "T").concat(declarationTime, "Z"));
         var flightDate = null;
         if (match[7] !== '00' || match[8] !== '00' || match[9] !== '00') {
             lastCentury = match[9][0] === '8' || match[9][0] === '9';
-            flightDate = "" + (lastCentury ? '19' : '20') + match[9] + "-" + match[8] + "-" + match[7];
+            flightDate = "".concat(lastCentury ? '19' : '20').concat(match[9], "-").concat(match[8], "-").concat(match[7]);
         }
         var taskNumber = (match[10] !== '0000') ? parseInt(match[10], 10) : null;
         var numTurnpoints = parseInt(match[11], 10);
@@ -734,7 +775,7 @@ var IGCParser = /** @class */ (function () {
     IGCParser.prototype.parseTaskPoint = function (line) {
         var match = line.match(RE_TASKPOINT);
         if (!match) {
-            throw new Error("Invalid task point declaration at line " + this.lineNumber + ": " + line);
+            throw new Error("Invalid task point declaration at line ".concat(this.lineNumber, ": ").concat(line));
         }
         var latitude = IGCParser.parseLatitude(match[1], match[2], match[3], match[4]);
         var longitude = IGCParser.parseLongitude(match[5], match[6], match[7], match[8]);
@@ -747,15 +788,8 @@ var IGCParser = /** @class */ (function () {
         }
         var match = line.match(RE_B);
         if (!match) {
-            throw new Error("Invalid B record at line " + this.lineNumber + ": " + line);
+            throw new Error("Invalid B record at line ".concat(this.lineNumber, ": ").concat(line));
         }
-        var time = match[1] + ":" + match[2] + ":" + match[3];
-        var timestamp = this.calcTimestamp(time);
-        var latitude = IGCParser.parseLatitude(match[4], match[5], match[6], match[7]);
-        var longitude = IGCParser.parseLongitude(match[8], match[9], match[10], match[11]);
-        var valid = match[12] === 'A';
-        var pressureAltitude = match[13] === '00000' ? null : parseInt(match[13], 10);
-        var gpsAltitude = match[14] === '00000' ? null : parseInt(match[14], 10);
         var extensions = {};
         if (this.fixExtensions) {
             for (var _i = 0, _a = this.fixExtensions; _i < _a.length; _i++) {
@@ -763,6 +797,15 @@ var IGCParser = /** @class */ (function () {
                 extensions[code] = line.slice(start, start + length);
             }
         }
+        var time = "".concat(match[1], ":").concat(match[2], ":").concat(match[3]);
+        var timestamp = this.calcTimestamp(time);
+        var mmmext = (RE_INT.test(extensions['LAD'])) ? extensions['LAD'] : '';
+        var latitude = IGCParser.parseLatitude(match[4], match[5], match[6] + mmmext, match[7]);
+        mmmext = (RE_INT.test(extensions['LOD'])) ? extensions['LOD'] : '';
+        var longitude = IGCParser.parseLongitude(match[8], match[9], match[10] + mmmext, match[11]);
+        var valid = match[12] === 'A';
+        var pressureAltitude = match[13] === '00000' ? null : parseInt(match[13], 10);
+        var gpsAltitude = match[14] === '00000' ? null : parseInt(match[14], 10);
         var enl = null;
         if (extensions['ENL']) {
             var enlLength = this.fixExtensions.filter(function (it) { return it.code === 'ENL'; })[0].length;
@@ -792,9 +835,9 @@ var IGCParser = /** @class */ (function () {
         }
         var match = line.match(RE_K);
         if (!match) {
-            throw new Error("Invalid K record at line " + this.lineNumber + ": " + line);
+            throw new Error("Invalid K record at line ".concat(this.lineNumber, ": ").concat(line));
         }
-        var time = match[1] + ":" + match[2] + ":" + match[3];
+        var time = "".concat(match[1], ":").concat(match[2], ":").concat(match[3]);
         var timestamp = this.calcTimestamp(time);
         var extensions = {};
         if (this.dataExtensions) {
@@ -808,11 +851,11 @@ var IGCParser = /** @class */ (function () {
     IGCParser.prototype.parseIJRecord = function (line) {
         var match = line.match(RE_IJ);
         if (!match) {
-            throw new Error("Invalid " + line[0] + " record at line " + this.lineNumber + ": " + line);
+            throw new Error("Invalid ".concat(line[0], " record at line ").concat(this.lineNumber, ": ").concat(line));
         }
         var num = parseInt(match[1], 10);
         if (line.length < 3 + num * 7) {
-            throw new Error("Invalid " + line[0] + " record at line " + this.lineNumber + ": " + line);
+            throw new Error("Invalid ".concat(line[0], " record at line ").concat(this.lineNumber, ": ").concat(line));
         }
         var extensions = new Array(num);
         for (var i = 0; i < num; i++) {
@@ -825,12 +868,22 @@ var IGCParser = /** @class */ (function () {
         }
         return extensions;
     };
+    IGCParser.prototype.parseLRecord = function (line) {
+        var match = line.match(RE_L);
+        if (!match) {
+            throw new Error("Invalid L record at line ".concat(this.lineNumber, ": ").concat(line));
+        }
+        return {
+            code: match[1],
+            message: match[2].trim()
+        };
+    };
     IGCParser.parseLatitude = function (dd, mm, mmm, ns) {
-        var degrees = parseInt(dd, 10) + parseFloat(mm + "." + mmm) / 60;
+        var degrees = parseInt(dd, 10) + parseFloat("".concat(mm, ".").concat(mmm)) / 60;
         return (ns === 'S') ? -degrees : degrees;
     };
     IGCParser.parseLongitude = function (ddd, mm, mmm, ew) {
-        var degrees = parseInt(ddd, 10) + parseFloat(mm + "." + mmm) / 60;
+        var degrees = parseInt(ddd, 10) + parseFloat("".concat(mm, ".").concat(mmm)) / 60;
         return (ew === 'W') ? -degrees : degrees;
     };
     /**
@@ -839,7 +892,7 @@ var IGCParser = /** @class */ (function () {
      * the previous timestamp.
      */
     IGCParser.prototype.calcTimestamp = function (time) {
-        var timestamp = Date.parse(this._result.date + "T" + time + "Z");
+        var timestamp = Date.parse("".concat(this._result.date, "T").concat(time, "Z"));
         // allow timestamps one hour before the previous timestamp,
         // otherwise we assume the next day is meant
         while (this.prevTimestamp && timestamp < this.prevTimestamp - ONE_HOUR) {
