@@ -101,10 +101,10 @@
 				try {
 					let elevations_requests = [];
 					for(i in locations) {
-						elevations_requests[i] = get('https://data.geopf.fr/altimetrie/1.0/calcul/alti/rest/elevation.json?' + locations[i] + '&resource=ign_rge_alti_wld&zonly=true');
+						elevations_requests[i] = await get('https://data.geopf.fr/altimetrie/1.0/calcul/alti/rest/elevation.json?' + locations[i] + '&resource=ign_rge_alti_wld&zonly=true');
+						await new Promise(resolve => setTimeout(resolve, 200));  // Max 5 requests per second
 					}
-					elevations = await Promise.all(elevations_requests);
-					elevations = [].concat(...elevations);
+					elevations = [].concat(...elevations_requests);
 				} catch (error) {
 					console.log(error);
 					elevations = new Array(locations.length*200).fill(0);
