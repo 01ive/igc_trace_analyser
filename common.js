@@ -112,6 +112,7 @@ var play_time_period;
 var max_nb_points = 0;
 
 function play_cmd() {
+    let paragliding_stats = active_flight.paragliding_info;
     if (typeof paragliding_stats !== 'undefined') {
         try {
             max_nb_points = paragliding_stats.length();
@@ -129,6 +130,7 @@ function play_cmd() {
 }
 
 function speed_cmd() {
+    let paragliding_stats = active_flight.paragliding_info;
     if ( (typeof paragliding_stats !== 'undefined') && (auto_play_timer != 0) ) {
         play_time_period /= 2;
         clearInterval(auto_play_timer);
@@ -137,6 +139,7 @@ function speed_cmd() {
 }
 
 function play() {
+    let paragliding_stats = active_flight.paragliding_info;
     play_time_period = paragliding_stats[1].timestamp - paragliding_stats[0].timestamp;
     auto_play_timer = setInterval(play_period, play_time_period);
 }
@@ -159,6 +162,7 @@ function stop() {
 /* ============================================ Dynamic functions ============================================ */
 /* =========================================================================================================== */
 function closest_point(lat, lon) {
+    let paragliding_stats = active_flight.paragliding_info;
     let best_delta = 999999999999;
     let best_point = 0;
     for(point in paragliding_stats) {
@@ -173,6 +177,7 @@ function closest_point(lat, lon) {
     return best_point;
 }
 function update_position(position_index) {
+    let paragliding_stats = active_flight.paragliding_info;
     latlng = new leaflet.LatLng(0, 0);
     // Update cursor
     latlng.lat = paragliding_stats[position_index].latitude;
@@ -385,22 +390,23 @@ var baseMaps = {
 async function update_map(flight) {
     flight.process_flight_info();
     
-    // Process terrain elevation
+    // Process terrain elevation asynchronously
     let locations = flight.paragliding_info.get_positions_by_group(200);
     get_terrain_elevation(locations).then((elevations) => {
         flight.paragliding_info.set_terrain_elevation(elevations);
-        let [elevation_data, elevation_min, elevation_max, terrain_elevation] = get_elevation(paragliding_stats);
         elevation_graph = document.getElementById('elevation');
+        // Refresh terrain elevation graph
         Plotly.restyle(elevation_graph, {
-            y: [terrain_elevation]  // Note les doubles crochets !
+            y: [elevations]
           }, [1]);
     });
+
     refresh_map(flight);
 }
 
 // Refresh map
 function refresh_map(flight) {
-    paragliding_stats = flight.paragliding_info;
+    let paragliding_stats = flight.paragliding_info;
 
     // Update globals infos
     update_globals_infos(flight);
