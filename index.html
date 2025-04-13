@@ -120,7 +120,30 @@
 /* =========================================================================================================== */
 /* =================================================== Main ================================================== */
 /* =========================================================================================================== */
+			// Create file reader object
+			var file_name = null;			
+			const file_reader = new FileReader();
+			file_reader.addEventListener('load', (event) => {
+				let flight = new Flight("flight");
+				flight.load_file(event.target.result, file_name);
+				active_flight = flight;
+				update_map(flight);
+			});
 
+			// Manage URL parameters to pass igc file
+			const params = new URLSearchParams(window.location.search);
+
+			if(params.size > 0) {
+				const file_url = params.get('file');
+				file_name = file_url.split('=').pop();	// Get only the file name
+
+				fetch(file_url).then(res => {
+					res.blob().then(file_blob => {
+						file_reader.readAsText(file_blob);
+					})
+				}).catch(error => { console.log("Error loading file from url:", error); });
+			}
+			
 			// Declare global object (must be access from everywhere)
 			var active_flight = null;
 			var paragliding_stats = null;	// TODO: remove this variable and use active_flight instead
@@ -129,14 +152,8 @@
 			const fileSelector = document.getElementById('file-selector');
 			fileSelector.addEventListener('change', (event) => {
 				const fileList = event.target.files;
-				const reader = new FileReader();
-				reader.addEventListener('load', (event) => {
-					let flight = new Flight("flight");
-					flight.load_file(event.target.result, fileList[0].name);
-					active_flight = flight;
-					update_map(flight);
-				});
-				reader.readAsText(fileList[0]);
+				file_name = fileList[0].name;	// Get only the file name
+				file_reader.readAsText(fileList[0]);
 			});
 						
 			// Create map

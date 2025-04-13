@@ -24,7 +24,6 @@ This application relies mainly on
 * [plotly](https://plotly.com/) for graphs.
 
 Thanks to [browserify](https://browserify.org/), it embeddeds nodejs modules:
-* flight-recorder-manufacturers 
 * [igc-parser](https://github.com/Turbo87/igc-parser#readme)
 * [flight-recorder-manufacturers](https://github.com/Turbo87/flight-recorder-manufacturers)
 
