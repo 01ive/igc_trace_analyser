@@ -201,9 +201,14 @@ function update_position(position_index) {
 // Return elevation points, min, max and terrain elevation
 function get_elevation(paragliding_data) {
     let elevation = Object.values(paragliding_data).map( item => item.gpsAltitude);
-    let terrain_elevation = Object.values(paragliding_data).map( item => item.terrain_elevation);
-    let min = Math.min(...terrain_elevation);
+    let min = Math.min(...elevation);
     let max = Math.max(...elevation);
+    let terrain_elevation = Object.values(paragliding_data).map(() => (min-50)); // Fill terrain with default values to min
+
+    // If terrain elevation is available, use it
+    if(paragliding_data[0].terrain_elevation != null) {
+        terrain_elevation = Object.values(paragliding_data).map( item => item.terrain_elevation);
+    }
     
     return [elevation, min, max, terrain_elevation];
 }
@@ -236,7 +241,9 @@ function get_vertical_speed(paragliding_data) {
 function display_stats(point) {
     document.getElementById("point_info_time").innerHTML = point.duration;
     document.getElementById("point_info_elevation_gps").innerHTML = point.gpsAltitude.toPrecision(4) + "m";
-    document.getElementById("point_info_terrain").innerHTML = point.terrain_elevation.toPrecision(4) + "m";
+    if(point.terrain_elevation != null) {
+        document.getElementById("point_info_terrain").innerHTML = point.terrain_elevation.toPrecision(4) + "m";
+    }
     document.getElementById("point_info_speed").innerHTML = point.speed.toPrecision(3) + "km/h";
     document.getElementById("point_info_vario").innerHTML = point.vertical_speed.toPrecision(2) + "m/s";
     document.getElementById("point_info_distance").innerHTML = point.distance_total.toPrecision(4) + "m";
@@ -380,9 +387,14 @@ async function update_map(flight) {
     
     // Process terrain elevation
     let locations = flight.paragliding_info.get_positions_by_group(200);
-    let elevations = await get_terrain_elevation(locations);
-    flight.paragliding_info.set_terrain_elevation(elevations);
-    
+    get_terrain_elevation(locations).then((elevations) => {
+        flight.paragliding_info.set_terrain_elevation(elevations);
+        let [elevation_data, elevation_min, elevation_max, terrain_elevation] = get_elevation(paragliding_stats);
+        elevation_graph = document.getElementById('elevation');
+        Plotly.restyle(elevation_graph, {
+            y: [terrain_elevation]  // Note les doubles crochets !
+          }, [1]);
+    });
     refresh_map(flight);
 }
 
