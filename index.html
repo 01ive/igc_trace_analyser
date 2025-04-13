@@ -57,6 +57,10 @@
 			</div>
 			<div id="play_stop_button"><div id="play_picture" onclick="play_cmd()"></div></div>
 			<div id="speed_button"><div id="speed_picture" onclick="speed_cmd()"></div></div>
+			
+			<div id="comment_button"><div id="comment_picture" onclick="comment_cmd()"></div></div>
+			<div id="save_button"><div id="save_picture" onclick="save_cmd()"></div></div>
+
 			<div id="visibility_button"><div id="visibility_picture" onmouseover="document.getElementById('visibility_menu').style.visibility = 'visible'"></div></div>
 			<div id="visibility_menu" onmouseleave="this.style.visibility = 'hidden'">
 				<label><input type="checkbox" id="chkbx_title" value="title" checked onclick='visibility_checkbox_action(this);'>Global infos</label><br>
@@ -70,6 +74,7 @@
 			</div>
 		</div>
 		<div id="map"></div>
+		<div id="comment"><textarea id="comment_text" rows="3" cols="50" onchange="add_comment()"></textarea></div>
 		<div id="elevation" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)"></div>
 		<div id="speed_gauge" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)"></div>
 		<div id="vario" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)"></div>
@@ -117,7 +122,8 @@
 /* =========================================================================================================== */
 
 			// Declare global object (must be access from everywhere)
-			var paragliding_stats;
+			var active_flight = null;
+			var paragliding_stats = null;	// TODO: remove this variable and use active_flight instead
 		
 			// Load file button
 			const fileSelector = document.getElementById('file-selector');
@@ -126,7 +132,8 @@
 				const reader = new FileReader();
 				reader.addEventListener('load', (event) => {
 					let flight = new Flight("flight");
-					flight.load_file(event.target.result, '.' + fileList[0].name.split('.').pop().toLowerCase());
+					flight.load_file(event.target.result, fileList[0].name);
+					active_flight = flight;
 					update_map(flight);
 				});
 				reader.readAsText(fileList[0]);
@@ -144,6 +151,7 @@
 			}).addTo(map);
 
 			var layerControl = L.control.layers(baseMaps).addTo(map);
+
 		</script>
 	</body>
 </html>

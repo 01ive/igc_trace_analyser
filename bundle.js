@@ -6,6 +6,8 @@ var gpxParser = require('gpxparser');
 
 class Flight {
     constructor(name) {
+        this.file_name = null;
+        this.file_content = null;
         this.name = name;
         this.middle_index = 0;
         this.center_lon = 0;
@@ -39,21 +41,36 @@ class Flight {
         this.flight_info.elevation_over_start = 0;
         this.flight_info.elevation_start = 0;
         this.flight_info.elevation_stop = 0;
+        this.comment = '';
     }
 
-    load_file(file_content, file_format) {
-        if(file_format == ".igc") {
+    load_file(file_content, file_name) {
+        this.file_name = file_name;
+        this.file_content = file_content;
+        let file_format = file_name.split('.').pop().toLowerCase();
+        if(file_format == "igc") {
             this.load_igc_file(file_content);
-        } else if (file_format == ".gpx") {
+        } else if (file_format == "gpx") {
             this.load_gpx_file(file_content);
         } else {
             console.log("ERROR: Incompatible file format");
         }
     }
 
+    read_comment(igc_comments) {
+        for(let i in igc_comments) {
+            // If igc_comments are from pilote
+            if(igc_comments[i].code === "PLT") {
+                this.comment += igc_comments[i].message + '\n';
+            }
+        }
+        this.comment = this.comment.slice(0, -1); // Remove last \n
+    }
+
     load_igc_file(file_content) {
         let igc_obj = IGCParser.parse(file_content, {parseComments: true});
         
+        this.read_comment(igc_obj.commentRecords);
         // Calculate center of map coordinates
         this.middle_index = Math.floor(igc_obj.fixes.length/2);
         this.center_lon   = igc_obj.fixes[this.middle_index]['longitude'];

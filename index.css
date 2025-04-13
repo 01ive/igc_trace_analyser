@@ -104,6 +104,54 @@
     width: 100%;
 }
 
+#comment_button {
+    position: absolute;
+    top: 20px;
+    left: 125px;
+    width: 25px;
+    height: 25px;
+    border-radius: 4px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    z-index: 5;
+    visibility: hidden;
+}
+
+#comment_picture {
+    display: block;
+    cursor: pointer;
+    background-color: white;
+    background-image: url("ressources/comment.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    border-radius: 2px;
+    height: 100%;
+    width: 100%;
+}
+
+#save_button {
+    position: absolute;
+    top: 50px;
+    left: 125px;
+    width: 25px;
+    height: 20px;
+    border-radius: 4px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    z-index: 5;
+    visibility: hidden;
+}
+
+#save_picture {
+    display: block;
+    cursor: pointer;
+    background-color: white;
+    background-image: url("ressources/save.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    border-radius: 2px;
+    height: 100%;
+    width: 100%;
+}
+
 #visibility_menu {
     position: absolute;
     visibility: hidden;
@@ -126,6 +174,17 @@
     height: 99vh;
     position: absolute;
     z-index: 0;
+}
+
+#comment {
+    position: absolute;
+    top: 20px;
+    left: 155px;
+    z-index: 1;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 2px;
+    padding: 2px;
+    visibility: hidden;
 }
 
 #elevation {

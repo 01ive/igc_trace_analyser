@@ -38,6 +38,71 @@ function key_commands(k) {
         document.getElementById("chkbx_control_buttons").checked = true;
     }
 }
+
+// Display IGC comments
+function comment_cmd() {
+    let comment_visibility = document.getElementById("comment").style.visibility;
+    if (comment_visibility == "hidden") {
+        document.getElementById("comment").style.visibility = "visible";
+        document.getElementById("comment_text").focus();
+        document.getElementById("comment_text").select();
+    } else {
+        document.getElementById("comment").style.visibility = "hidden";
+    }
+}
+
+// Save IGC file with comments
+function save_cmd() {
+    function sauvegarderFichier() {
+        const contenu = active_flight.file_content;
+        const nomFichier = active_flight.file_name;
+
+        const blob = new Blob([contenu], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+
+        const lien = document.createElement("a");
+        lien.href = url;
+        lien.download = nomFichier;
+        document.body.appendChild(lien);
+        lien.click();
+        document.body.removeChild(lien);
+
+        URL.revokeObjectURL(url);  // Clean memory
+        }
+    sauvegarderFichier();
+}
+
+// Add comments to IGC file
+function add_comment() {
+    const comments = document.getElementById('comment_text').value;
+    let file_content_lines = active_flight.file_content.split('\n');
+
+    // Remove the existing LPLT lines
+    let index = 0;
+    while(index !== -1) {
+        index = file_content_lines.findIndex(file_content_lines => file_content_lines.startsWith('LPLT'));
+        if (index !== -1) {
+            file_content_lines.splice(index, 1);
+        }
+    }
+
+    // Prepare the comments to be added
+    let comments_lines = comments.split('\n');
+    for(l in comments_lines) {
+        if(comments_lines[l].length > 0) {
+            comments_lines[l] = 'LPLT' + comments_lines[l];
+        } else { // Manage empty lines
+            comments_lines[l] = 'LPLT_';
+        }
+    }
+
+    // Add the new LPLT lines with comments
+    file_content_lines.splice(file_content_lines.length - 2, 0, ...comments_lines);
+
+    // Save update file content
+    active_flight.file_content = file_content_lines.join('\n');						
+}
+
 /* =========================================================================================================== */
 /* =========================================== Auto play functions =========================================== */
 /* =========================================================================================================== */
@@ -124,9 +189,9 @@ function update_position(position_index) {
     Plotly.update('vario', vario_data[0]);
     // Update elevation
     let updt = {color: 'red'};
-    elevation_graph.layout.shapes[0].x0=paragliding_stats[position_index].distance_total;
-    elevation_graph.layout.shapes[0].x1=paragliding_stats[position_index].distance_total;
-    elevation_graph.layout.shapes[0].label.text=paragliding_stats[position_index].gpsAltitude.toPrecision(4) + 'm<br>' 
+    elevation_graph.layout.shapes[0].x0 = paragliding_stats[position_index].distance_total;
+    elevation_graph.layout.shapes[0].x1 = paragliding_stats[position_index].distance_total;
+    elevation_graph.layout.shapes[0].label.text = paragliding_stats[position_index].gpsAltitude.toPrecision(4) + 'm<br>' 
         + (paragliding_stats[position_index].distance_total/1000).toPrecision(4) + 'km';
     Plotly.restyle('elevation', updt);
     // Update auto play index
@@ -327,6 +392,9 @@ function refresh_map(flight) {
 
     // Update globals infos
     update_globals_infos(flight);
+
+    // Update comments
+    document.getElementById("comment_text").value = flight.comment;
     
     // Delete existing map
     if (map && map.remove) {
@@ -364,6 +432,9 @@ function refresh_map(flight) {
     document.getElementById('visibility_button').style.visibility = 'unset';
     document.getElementById('play_stop_button').style.visibility = 'unset';
     document.getElementById('speed_button').style.visibility = 'unset';
+    document.getElementById('comment_button').style.visibility = 'unset';
+    document.getElementById('save_button').style.visibility = 'unset';
+    document.getElementById('comment').style.visibility = 'hidden';
     
     // Uncheck hidden objects
     document.getElementById('chkbx_speed_gauge').checked = false;
