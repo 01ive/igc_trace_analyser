@@ -388,7 +388,12 @@ var baseMaps = {
 /* =========================================================================================================== */
 // Calculate data and refresh map
 async function update_map(flight) {
+    user_message = document.getElementById('user_message');
+    user_message.style.visibility = 'visible';
+    await new Promise(resolve => setTimeout(resolve, 100)); // Give time to refresh display
     flight.process_flight_info();
+    user_message.style.visibility = 'hidden';
+      
     
     // Process terrain elevation asynchronously
     let locations = flight.paragliding_info.get_positions_by_group(200);
