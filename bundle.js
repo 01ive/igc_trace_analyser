@@ -84,6 +84,13 @@ class Flight {
 
         // Create paragliding_info object
         this.paragliding_info = new geoparagliding.ParaglidingPoint(igc_obj.fixes);
+
+        // Process terrain elevation is extension XXT exists
+        if( this.paragliding_info[0].extensions['XXT'] ) {
+            for(let i in this.paragliding_info) {
+                this.paragliding_info[i].terrain_elevation = parseInt(this.paragliding_info[i].extensions['XXT']);
+            }
+        }
     }
 
     load_gpx_file(file_content) {
