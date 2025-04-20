@@ -67,6 +67,35 @@ class Flight {
         this.comment = this.comment.slice(0, -1); // Remove last \n
     }
 
+    add_comment_to_file_content(igc_comments) {
+        let file_content_lines = this.file_content.split('\r\n');
+
+        // Remove the existing LPLT lines
+        let index = 0;
+        while(index !== -1) {
+            index = file_content_lines.findIndex(file_content_lines => file_content_lines.startsWith('LPLT'));
+            if (index !== -1) {
+                file_content_lines.splice(index, 1);
+            }
+        }
+
+        // Prepare the comments to be added
+        let comments_lines = igc_comments.split('\n');
+        for(let l in comments_lines) {
+            if(comments_lines[l].length > 0) {
+                comments_lines[l] = 'LPLT' + comments_lines[l];
+            } else { // Manage empty lines
+                comments_lines[l] = 'LPLT_';
+            }
+        }
+
+        // Add the new LPLT lines with comments
+        file_content_lines.splice(file_content_lines.length - 2, 0, ...comments_lines);
+
+        // Save update file content
+        this.file_content = file_content_lines.join('\r\n');						
+    }
+
     load_igc_file(file_content) {
         let igc_obj = IGCParser.parse(file_content, {parseComments: true});
         

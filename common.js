@@ -72,37 +72,6 @@ function save_cmd() {
     sauvegarderFichier();
 }
 
-// Add comments to IGC file
-function add_comment_to_file_content() {
-    const comments = document.getElementById('comment_text').value;
-    let file_content_lines = active_flight.file_content.split('\r\n');
-
-    // Remove the existing LPLT lines
-    let index = 0;
-    while(index !== -1) {
-        index = file_content_lines.findIndex(file_content_lines => file_content_lines.startsWith('LPLT'));
-        if (index !== -1) {
-            file_content_lines.splice(index, 1);
-        }
-    }
-
-    // Prepare the comments to be added
-    let comments_lines = comments.split('\n');
-    for(l in comments_lines) {
-        if(comments_lines[l].length > 0) {
-            comments_lines[l] = 'LPLT' + comments_lines[l];
-        } else { // Manage empty lines
-            comments_lines[l] = 'LPLT_';
-        }
-    }
-
-    // Add the new LPLT lines with comments
-    file_content_lines.splice(file_content_lines.length - 2, 0, ...comments_lines);
-
-    // Save update file content
-    active_flight.file_content = file_content_lines.join('\r\n');						
-}
-
 // Add terrain elevation to IGC file
 function add_terrain_elevation_to_file_content() {
     let file_content_lines = active_flight.file_content.split('\r\n');
