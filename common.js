@@ -72,54 +72,6 @@ function save_cmd() {
     sauvegarderFichier();
 }
 
-// Add terrain elevation to IGC file
-function add_terrain_elevation_to_file_content() {
-    let file_content_lines = active_flight.file_content.split('\r\n');
-    
-    // Test if terrain elevation exists
-    if(! active_flight.paragliding_info[0].terrain_elevation) {
-        return;
-    }
-
-    // Add extension to coding format I NN SS FF CCC ...
-    let index = file_content_lines.findIndex(file_content_lines => file_content_lines.startsWith('I'));
-
-    let nb_rec_ext = file_content_lines[index].match(/I(\d{2}).*/); // Find how many extensions already exist
-    const rec_size = 7;     // Size of each record SS FF CCC = 7
-    const first_rec = 3;    // First extension position after I NN = 3
-    
-    for(let i=first_rec; i<(file_content_lines[index].length-1); i+=rec_size) {
-        let rec_data = file_content_lines[index].substring(i, i+rec_size).match(/(\d{2})(\d{2})(\w{3})/);
-        let rec_start = parseInt(rec_data[1]);
-        var rec_end = parseInt(rec_data[2]);
-        let rec_type = rec_data[3];
-        if(rec_type === 'XXT') {
-            return
-        }
-    }
-    terrain_rec_start = rec_end + 1;
-    terrain_rec_end = terrain_rec_start + 4;
-    terrain_rec_start = terrain_rec_start.toString().padStart(2, '0');
-    terrain_rec_end = terrain_rec_end.toString().padStart(2, '0');
-    terrain_rec_type = 'XXT';
-    nb_rec = parseInt(nb_rec_ext[1]) + 1
-    nb_rec = nb_rec.toString().padStart(2, '0');
-
-    file_content_lines[index] = file_content_lines[index].slice(0, 1) + nb_rec + file_content_lines[index].slice(3) + terrain_rec_start + terrain_rec_end + terrain_rec_type;
-
-    // Add terrain elevation for each point
-    let point_index = 0;
-    for(line in file_content_lines) {
-        if(file_content_lines[line].startsWith('B')) {
-            file_content_lines[line] += Math.floor(active_flight.paragliding_info[point_index].terrain_elevation).toString().padStart(4, '0');
-            point_index++;
-        }
-    }
-
-    // Save update file content
-    active_flight.file_content = file_content_lines.join('\r\n');
-}
-
 /* =========================================================================================================== */
 /* =========================================== Auto play functions =========================================== */
 /* =========================================================================================================== */
@@ -416,7 +368,7 @@ async function update_map(flight) {
         let locations = flight.paragliding_info.get_positions_by_group(200);
         get_terrain_elevation(locations).then((elevations) => {
             flight.paragliding_info.set_terrain_elevation(elevations);
-            add_terrain_elevation_to_file_content();
+            flight.add_terrain_elevation_to_file_content();
             elevation_graph = document.getElementById('elevation');
             // Refresh terrain elevation graph
             Plotly.restyle(elevation_graph, {
