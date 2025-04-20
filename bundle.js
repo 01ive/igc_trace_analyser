@@ -7,6 +7,7 @@ var gpxParser = require('gpxparser');
 class Flight {
     constructor(name) {
         this.file_name = null;
+        this.file_format = null;
         this.file_content = null;
         this.name = name;
         this.middle_index = 0;
@@ -47,10 +48,10 @@ class Flight {
     load_file(file_content, file_name) {
         this.file_name = file_name;
         this.file_content = file_content;
-        let file_format = file_name.split('.').pop().toLowerCase();
-        if(file_format == "igc") {
+        this.file_format = file_name.split('.').pop().toLowerCase();
+        if(this.file_format == "igc") {
             this.load_igc_file(file_content);
-        } else if (file_format == "gpx") {
+        } else if (this.file_format == "gpx") {
             this.load_gpx_file(file_content);
         } else {
             console.log("ERROR: Incompatible file format");
@@ -68,6 +69,11 @@ class Flight {
     }
 
     add_comment_to_file_content(igc_comments) {
+        // Only IGC file are supported
+        if(this.file_format != "igc") {
+            return
+        }
+
         let file_content_lines = this.file_content.split('\r\n');
 
         // Remove the existing LPLT lines
@@ -98,6 +104,10 @@ class Flight {
 
     // Add terrain elevation to IGC file
     add_terrain_elevation_to_file_content() {
+        // Only IGC file are supported
+        if(this.file_format != "igc") {
+            return
+        }
         let file_content_lines = this.file_content.split('\r\n');
         
         // Test if terrain elevation exists
