@@ -54,6 +54,11 @@ function comment_cmd() {
 // Save IGC file with comments
 function save_cmd() {
     function sauvegarderFichier() {
+        if(active_flight.file_format == 'gpx') {
+            active_flight.convert_gpx_to_igc();
+            active_flight.add_terrain_elevation_to_file_content();
+            active_flight.add_comment_to_file_content(document.getElementById("comment_text").value);
+        }
         const contenu = active_flight.file_content;
         const nomFichier = active_flight.file_name;
 
