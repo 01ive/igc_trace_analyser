@@ -117,30 +117,35 @@ class Flight {
 
         // Add extension to coding format I NN SS FF CCC ...
         let index = file_content_lines.findIndex(file_content_lines => file_content_lines.startsWith('I'));
-
-        let nb_rec_ext = file_content_lines[index].match(/I(\d{2}).*/); // Find how many extensions already exist
-        const rec_size = 7;     // Size of each record SS FF CCC = 7
-        const first_rec = 3;    // First extension position after I NN = 3
-        
-        for(let i=first_rec; i<(file_content_lines[index].length-1); i+=rec_size) {
-            let rec_data = file_content_lines[index].substring(i, i+rec_size).match(/(\d{2})(\d{2})(\w{3})/);
-            let rec_start = parseInt(rec_data[1]);
-            var rec_end = parseInt(rec_data[2]);
-            let rec_type = rec_data[3];
-            if(rec_type === 'XXT') {
-                // If terrain elevation already exists in file, return
-                return
+        // If no extension definition found
+        if(index != -1) {
+            let nb_rec_ext = file_content_lines[index].match(/I(\d{2}).*/); // Find how many extensions already exist
+            const rec_size = 7;     // Size of each record SS FF CCC = 7
+            const first_rec = 3;    // First extension position after I NN = 3
+            
+            for(let i=first_rec; i<(file_content_lines[index].length-1); i+=rec_size) {
+                let rec_data = file_content_lines[index].substring(i, i+rec_size).match(/(\d{2})(\d{2})(\w{3})/);
+                let rec_start = parseInt(rec_data[1]);
+                var rec_end = parseInt(rec_data[2]);
+                let rec_type = rec_data[3];
+                if(rec_type === 'XXT') {
+                    // If terrain elevation already exists in file, return
+                    return
+                }
             }
-        }
-        let terrain_rec_start = rec_end + 1;
-        let terrain_rec_end = terrain_rec_start + 4;
-        terrain_rec_start = terrain_rec_start.toString().padStart(2, '0');
-        terrain_rec_end = terrain_rec_end.toString().padStart(2, '0');
-        let terrain_rec_type = 'XXT';
-        let nb_rec = parseInt(nb_rec_ext[1]) + 1
-        nb_rec = nb_rec.toString().padStart(2, '0');
+            let terrain_rec_start = rec_end + 1;
+            let terrain_rec_end = terrain_rec_start + 4;
+            terrain_rec_start = terrain_rec_start.toString().padStart(2, '0');
+            terrain_rec_end = terrain_rec_end.toString().padStart(2, '0');
+            let terrain_rec_type = 'XXT';
+            let nb_rec = parseInt(nb_rec_ext[1]) + 1
+            nb_rec = nb_rec.toString().padStart(2, '0');
 
-        file_content_lines[index] = file_content_lines[index].slice(0, 1) + nb_rec + file_content_lines[index].slice(3) + terrain_rec_start + terrain_rec_end + terrain_rec_type;
+            file_content_lines[index] = file_content_lines[index].slice(0, 1) + nb_rec + file_content_lines[index].slice(3) + terrain_rec_start + terrain_rec_end + terrain_rec_type;
+        } else {    // Create extention definition
+            index = file_content_lines.findIndex(file_content_lines => file_content_lines.startsWith('B'));
+            file_content_lines.splice(index, 0, 'I' + '01' + '36' + '40' + 'XXT');
+        }
 
         // Add terrain elevation for each point
         let point_index = 0;
