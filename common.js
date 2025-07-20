@@ -393,7 +393,11 @@ function refresh_map(flight) {
     update_globals_infos(flight);
 
     // Update comments
-    document.getElementById("comment_text").value = flight.comment;
+    if(flight.comment) {
+        document.getElementById("comment_text").value = flight.comment;
+    } else {    // Default value if no comments in file
+        document.getElementById("comment_text").value = "site: \nmonitor: \n";
+    }
     
     // Delete existing map
     if (map && map.remove) {
