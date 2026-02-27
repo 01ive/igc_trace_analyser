@@ -54,7 +54,8 @@
 		<div id="control_buttons">
 			<div id="menu_button">
 				<label id="my-file-selector" for="file-selector"></label>
-				<input type="file" id="file-selector" accept=".igc, .gpx">
+				<!-- allow selecting multiple tracks at once -->
+				<input type="file" id="file-selector" accept=".igc, .gpx" multiple>
 			</div>
 			<div id="play_stop_button"><div id="play_picture" onclick="play_cmd()"></div></div>
 			<div id="speed_button"><div id="speed_picture" onclick="speed_cmd()"></div></div>
@@ -121,40 +122,63 @@
 /* =========================================================================================================== */
 /* =================================================== Main ================================================== */
 /* =========================================================================================================== */
-			// Create file reader object
-			var file_name = null;			
-			const file_reader = new FileReader();
-			file_reader.addEventListener('load', (event) => {
-				let flight = new Flight("flight");
-				flight.load_file(event.target.result, file_name);
-				active_flight = flight;
-				update_map(flight);
-			});
+// Global data for multi-track support
+				var file_name = null;
+				var flights = [];
+				var active_flight = null; // selected track whose stats are shown
+
+				// helper to load a single file into a Flight and update map
+				function loadFileContent(content, name) {
+					let flight = new Flight("flight");
+					flight.load_file(content, name);
+					flights.push(flight);
+					// if this is the first track we load, make it active; otherwise keep current selection
+					if(flights.length === 1) {
+						active_flight = flight;
+					}
+					update_map(flight);
+				}
+
+				// Create file reader and listener used for each file
+				function createFileReader(file) {
+					const reader = new FileReader();
+					reader.addEventListener('load', (event) => {
+						loadFileContent(event.target.result, file.name);
+					});
+					return reader;
+				}
 
 			// Manage URL parameters to pass igc file
 			const params = new URLSearchParams(window.location.search);
+if(params.size > 0) {
+const file_url = params.get('file');
+file_name = file_url.split('=').pop();// Get only the file name
+fetch(file_url)
+.then(res => res.blob())
+.then(file_blob => {
+const reader = new FileReader();
+reader.addEventListener('load', (event) => {
+loadFileContent(event.target.result, file_name);
+});
+reader.readAsText(file_blob);
+})
+.catch(error => { console.log("Error loading file from url:", error); });
+}
+// Load file button – allows multiple tracks selection
+const fileSelector = document.getElementById('file-selector');
+fileSelector.addEventListener('change', (event) => {
+const fileList = event.target.files;
+for(let i = 0; i < fileList.length; i++) {
+const file = fileList[i];
+file_name = file.name;
+const reader = createFileReader(file);
+reader.readAsText(file);
+}
+// reset value so same file can be picked again later
+event.target.value = '';
+});
 
-			if(params.size > 0) {
-				const file_url = params.get('file');
-				file_name = file_url.split('=').pop();	// Get only the file name
 
-				fetch(file_url).then(res => {
-					res.blob().then(file_blob => {
-						file_reader.readAsText(file_blob);
-					})
-				}).catch(error => { console.log("Error loading file from url:", error); });
-			}
-			
-			// Declare global object (must be access from everywhere)
-			var active_flight = null;
-		
-			// Load file button
-			const fileSelector = document.getElementById('file-selector');
-			fileSelector.addEventListener('change', (event) => {
-				const fileList = event.target.files;
-				file_name = fileList[0].name;	// Get only the file name
-				file_reader.readAsText(fileList[0]);
-			});
 						
 			// Create map
 			var map = L.map('map', {
