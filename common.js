@@ -399,6 +399,9 @@ async function update_map(flight) {
     refresh_map(active_flight || flight);
 }
 
+var cursor;
+var start_marker;
+var end_marker;
 // Refresh map
 function refresh_map(selectedFlight) {
     if(!selectedFlight) {
@@ -416,29 +419,35 @@ function refresh_map(selectedFlight) {
         document.getElementById("comment_text").value = "site: \nmonitor: \n";
     }
     
-    // Remove any existing map and start fresh
-    if (map && map.remove) {
+    // If map does not exist, create it. Otherwise, just update the displayed tracks and stats
+    if (cursor) {
+        cursor.remove();
+        start_marker.remove();
+        end_marker.remove();
+        flights.forEach((flight) => {
+            if (flight._polyline) {
+                flight._polyline.remove();
+            }
+        });
+    } else {
         map.off();
         map.remove();
-    }
+        map = L.map('map', {
+            center: [selectedFlight.center_lat, selectedFlight.center_lon],
+            zoom: 13,
+            layers: [GeoportailFrance_plan],
+            zoomControl: false
+        });
+        var zoom_control = L.control.zoom({
+            position: 'topright'
+            }).addTo(map);
+        var zoom_control_container = zoom_control.getContainer();
+        zoom_control_container.id = "zoom_control";
 
-    // Create base map (center will be adjusted below)
-    map = L.map('map', {
-        center: [selectedFlight.center_lat, selectedFlight.center_lon],
-        zoom: 13,
-        layers: [GeoportailFrance_plan],
-        zoomControl: false
-    });
-
-    var zoom_control = L.control.zoom({
-        position: 'topright'
-    }).addTo(map);
-    var zoom_control_container = zoom_control.getContainer();
-    zoom_control_container.id = "zoom_control";
-
-    var layer_control = L.control.layers(baseMaps).addTo(map);
-    var layerControl_container = layer_control.getContainer();
-    layerControl_container.id = "layer_control";
+        var layer_control = L.control.layers(baseMaps).addTo(map);
+        var layerControl_container = layer_control.getContainer();
+        layerControl_container.id = "layer_control";
+    }   
 
     // Display UI elements
     document.getElementById('title').style.visibility = 'unset';
@@ -494,8 +503,8 @@ function refresh_map(selectedFlight) {
     //var last_item = paragliding_stats.length - 1;
     var start_icon = L.icon({iconUrl: 'ressources/marker-icon-g.png', iconSize: [25, 41], iconAnchor: [12, 41]});
     var end_icon = L.icon({iconUrl: 'ressources/marker-icon-r.png', iconSize: [25, 41], iconAnchor: [12, 41]});
-    L.marker([paragliding_stats[0].latitude, paragliding_stats[0].longitude], {icon: start_icon}).addTo(map);
-    L.marker([paragliding_stats[last_item].latitude, paragliding_stats[last_item].longitude], {icon: end_icon}).addTo(map);			
+    start_marker = L.marker([paragliding_stats[0].latitude, paragliding_stats[0].longitude], {icon: start_icon}).addTo(map);
+    end_marker = L.marker([paragliding_stats[last_item].latitude, paragliding_stats[last_item].longitude], {icon: end_icon}).addTo(map);			
     var paraglider_icon = L.icon({iconUrl: 'ressources/paraglider.png', iconSize: [25, 23], iconAnchor: [12, 20]});
     cursor = L.marker([paragliding_stats[0].latitude, paragliding_stats[0].longitude], {icon: paraglider_icon});
     cursor.addTo(map);
@@ -524,7 +533,8 @@ function refresh_map(selectedFlight) {
     // adjust view to contain all tracks
     if(layers.length > 0) {
         const group = L.featureGroup(layers);
-        map.fitBounds(group.getBounds());
+        // TODO
+        // map.fitBounds(group.getBounds());
     }
 
     // ===== graphs for selected flight =====
