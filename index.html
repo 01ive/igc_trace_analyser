@@ -1,198 +1,315 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<title>IGC file analyser</title>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-		<link rel="stylesheet" href="index.css" />
-		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-		integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-		crossorigin=""/>
-		<script src='https://cdn.plot.ly/plotly-2.27.0.min.js'></script>
-		<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-		integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-		crossorigin=""></script>
-		<script src="common.js"></script>
-		<script src="bundle.js"></script>
-	</head>
 
-	<body>
-		<div id="title" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)">
-			<table>
-				<tr class="line_title"><td>GENERAL INFOS</td></tr>
-				<tr><td>date</td><td id="flight_date">__:__:__</td></tr>
-				<tr><td>time (utc)</td><td id="flight_time">----</td></tr>
-				<tr><td>logger</td><td id="logger">----</td></tr>
-				<tr><td>duration</td><td id="flight_duration">----</td></tr>
-				<tr><td>high</td><td id="flight_high">----</td></tr>
-				<tr><td>elevation</td><td id="flight_elevation">----</td></tr>
+<head>
+	<title>IGC file analyser</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+	<link rel="stylesheet" href="index.css" />
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+		integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+	<script src='https://cdn.plot.ly/plotly-2.27.0.min.js'></script>
+	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+		integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+	<script src="common.js"></script>
+	<script src="bundle.js"></script>
+</head>
 
-				<tr class="line_title"><td>TAKEOFF</td></tr>
-				<tr><td>time</td><td id="takeoff_time">----</td></tr>
-				<tr><td>elevation</td><td id="takeoff_elevation">----</td></tr>
-				<tr><td>position</td><td id="takeoff_position">--,--</td></tr>
+<body>
+	<div id="title" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)">
+		<table>
+			<tr class="line_title">
+				<td>GENERAL INFOS</td>
+			</tr>
+			<tr>
+				<td>date</td>
+				<td id="flight_date">__:__:__</td>
+			</tr>
+			<tr>
+				<td>time (utc)</td>
+				<td id="flight_time">----</td>
+			</tr>
+			<tr>
+				<td>logger</td>
+				<td id="logger">----</td>
+			</tr>
+			<tr>
+				<td>duration</td>
+				<td id="flight_duration">----</td>
+			</tr>
+			<tr>
+				<td>high</td>
+				<td id="flight_high">----</td>
+			</tr>
+			<tr>
+				<td>elevation</td>
+				<td id="flight_elevation">----</td>
+			</tr>
 
-				<tr class="line_title"><td>LANDING</td></tr>
-				<tr><td>time</td><td id="landing_time">----</td></tr>
-				<tr><td>elevation</td><td id="landing_elevation">----</td></tr>
-				<tr><td>position</td><td id="landing_position">--,--</td></tr>
+			<tr class="line_title">
+				<td>TAKEOFF</td>
+			</tr>
+			<tr>
+				<td>time</td>
+				<td id="takeoff_time">----</td>
+			</tr>
+			<tr>
+				<td>elevation</td>
+				<td id="takeoff_elevation">----</td>
+			</tr>
+			<tr>
+				<td>position</td>
+				<td id="takeoff_position">--,--</td>
+			</tr>
 
-				<tr class="line_title"><td>DETAILS</td></tr>
-				<tr><td>distance</td><td id="distance">----</td></tr>
-				<tr><td>distance takeoff to landing&nbsp;</td><td id="distance_takeoff_landing">----</td></tr>
-				<tr><td>distance max from takeoff</td><td id="distance_max_takeoff">----</td></tr>
-				<tr><td>average speed</td><td id="average_speed">----</td></tr>
-				<tr><td>max speed</td><td id="max_speed">----</td></tr>
-				<tr><td>average vertical speed</td><td id="average_vertical_speed">----</td></tr>
-				<tr><td>min vertical speed</td><td id="min_vertical_speed">----</td></tr>
-				<tr><td>max vertical speed</td><td id="max_vertical_speed">----</td></tr>
-				<tr><td>elevation max</td><td id="elevation_max">----</td></tr>
-				<tr><td>max takeoff elevation</td><td id="over_takeoff_elevation">----</td></tr>
-			</table>	
+			<tr class="line_title">
+				<td>LANDING</td>
+			</tr>
+			<tr>
+				<td>time</td>
+				<td id="landing_time">----</td>
+			</tr>
+			<tr>
+				<td>elevation</td>
+				<td id="landing_elevation">----</td>
+			</tr>
+			<tr>
+				<td>position</td>
+				<td id="landing_position">--,--</td>
+			</tr>
+
+			<tr class="line_title">
+				<td>DETAILS</td>
+			</tr>
+			<tr>
+				<td>distance</td>
+				<td id="distance">----</td>
+			</tr>
+			<tr>
+				<td>distance takeoff to landing&nbsp;</td>
+				<td id="distance_takeoff_landing">----</td>
+			</tr>
+			<tr>
+				<td>distance max from takeoff</td>
+				<td id="distance_max_takeoff">----</td>
+			</tr>
+			<tr>
+				<td>average speed</td>
+				<td id="average_speed">----</td>
+			</tr>
+			<tr>
+				<td>max speed</td>
+				<td id="max_speed">----</td>
+			</tr>
+			<tr>
+				<td>average vertical speed</td>
+				<td id="average_vertical_speed">----</td>
+			</tr>
+			<tr>
+				<td>min vertical speed</td>
+				<td id="min_vertical_speed">----</td>
+			</tr>
+			<tr>
+				<td>max vertical speed</td>
+				<td id="max_vertical_speed">----</td>
+			</tr>
+			<tr>
+				<td>elevation max</td>
+				<td id="elevation_max">----</td>
+			</tr>
+			<tr>
+				<td>max takeoff elevation</td>
+				<td id="over_takeoff_elevation">----</td>
+			</tr>
+		</table>
+	</div>
+	<div id="user_message">Processing data...</div>
+	<div id="control_buttons">
+		<div id="menu_button">
+			<label id="my-file-selector" for="file-selector"></label>
+			<!-- allow selecting multiple tracks at once -->
+			<input type="file" id="file-selector" accept=".igc, .gpx" multiple>
 		</div>
-		<div id="user_message">Processing data...</div>
-		<div id="control_buttons">
-			<div id="menu_button">
-				<label id="my-file-selector" for="file-selector"></label>
-				<!-- allow selecting multiple tracks at once -->
-				<input type="file" id="file-selector" accept=".igc, .gpx" multiple>
-			</div>
-			<div id="play_stop_button"><div id="play_picture" onclick="play_cmd()"></div></div>
-			<div id="speed_button"><div id="speed_picture" onclick="speed_cmd()"></div></div>
-			
-			<div id="comment_button"><div id="comment_picture" onclick="comment_cmd()"></div></div>
-			<div id="save_button"><div id="save_picture" onclick="save_cmd()"></div></div>
-
-			<div id="visibility_button"><div id="visibility_picture" onmouseover="document.getElementById('visibility_menu').style.visibility = 'visible'"></div></div>
-			<div id="visibility_menu" onmouseleave="this.style.visibility = 'hidden'">
-				<label><input type="checkbox" id="chkbx_title" value="title" checked onclick='visibility_checkbox_action(this);'>Global infos</label><br>
-				<label><input type="checkbox" id="chkbx_elevation" value="elevation" checked onclick='visibility_checkbox_action(this);'>Elevation</label><br>			
-				<label><input type="checkbox" id="chkbx_text" value="point_info" checked onclick='visibility_checkbox_action(this);'>Global infos</label><br>
-				<label><input type="checkbox" id="chkbx_speed_gauge" value="speed_gauge" checked onclick='visibility_checkbox_action(this);'>Speed gauge</label><br>
-				<label><input type="checkbox" id="chkbx_vario" value="vario" checked onclick='visibility_checkbox_action(this);'>Variometer</label><br>
-				<label><input type="checkbox" id="chkbx_zoom_control" value="zoom_control" checked onclick='visibility_checkbox_action(this);'>Zoom control</label><br>
-				<label><input type="checkbox" id="chkbx_layer_control" value="layer_control" checked onclick='visibility_checkbox_action(this);'>Map layer control</label><br>
-				<label><input type="checkbox" id="chkbx_control_buttons" value="control_buttons" checked onclick='visibility_checkbox_action(this);'>Control buttons</label><br>
-			</div>
+		<div id="play_stop_button">
+			<div id="play_picture" onclick="play_cmd()"></div>
 		</div>
-		<div id="map"></div>
-		<div id="comment"><textarea id="comment_text" rows="3" cols="50" onchange="active_flight.add_comment_to_file_content(this.value)"></textarea></div>
-		<div id="elevation" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)"></div>
-		<div id="speed_gauge" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)"></div>
-		<div id="vario" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)"></div>
-		<div id="point_info" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)">
-				<div>duration&nbsp;</div><div id="point_info_time">__:__:__</div>
-				<div>elevation (gps)&nbsp;</div><div id="point_info_elevation_gps">----</div>
-				<div>terrain&nbsp;</div><div id="point_info_terrain">----</div>
-				<div>speed&nbsp;</div><div id="point_info_speed">----</div>
-				<div>vario&nbsp;</div><div id="point_info_vario">----</div>
-				<div>distance&nbsp;</div><div id="point_info_distance">----</div>
-				<div>finesse&nbsp;</div><div id="point_info_finesse">----</div>
-				<div>bearing&nbsp;</div><div id="point_info_bearing">----</div>
+		<div id="speed_button">
+			<div id="speed_picture" onclick="speed_cmd()"></div>
 		</div>
 
-		<script>
-			// Synchronous get request
-			async function get(address) {
-				const response = await fetch(address);
-				if(!response.ok) {
-					console.log("Error");
+		<div id="comment_button">
+			<div id="comment_picture" onclick="comment_cmd()"></div>
+		</div>
+		<div id="save_button">
+			<div id="save_picture" onclick="save_cmd()"></div>
+		</div>
+
+		<div id="visibility_button">
+			<div id="visibility_picture"
+				onmouseover="document.getElementById('visibility_menu').style.visibility = 'visible'"></div>
+		</div>
+		<div id="visibility_menu" onmouseleave="this.style.visibility = 'hidden'">
+			<label><input type="checkbox" id="chkbx_title" value="title" checked
+					onclick='visibility_checkbox_action(this);'>Global infos</label><br>
+			<label><input type="checkbox" id="chkbx_elevation" value="elevation" checked
+					onclick='visibility_checkbox_action(this);'>Elevation</label><br>
+			<label><input type="checkbox" id="chkbx_text" value="point_info" checked
+					onclick='visibility_checkbox_action(this);'>Global infos</label><br>
+			<label><input type="checkbox" id="chkbx_speed_gauge" value="speed_gauge" checked
+					onclick='visibility_checkbox_action(this);'>Speed gauge</label><br>
+			<label><input type="checkbox" id="chkbx_vario" value="vario" checked
+					onclick='visibility_checkbox_action(this);'>Variometer</label><br>
+			<label><input type="checkbox" id="chkbx_zoom_control" value="zoom_control" checked
+					onclick='visibility_checkbox_action(this);'>Zoom control</label><br>
+			<label><input type="checkbox" id="chkbx_layer_control" value="layer_control" checked
+					onclick='visibility_checkbox_action(this);'>Map layer control</label><br>
+			<label><input type="checkbox" id="chkbx_control_buttons" value="control_buttons" checked
+					onclick='visibility_checkbox_action(this);'>Control buttons</label><br>
+		</div>
+	</div>
+	<div id="map"></div>
+	<div id="comment"><textarea id="comment_text" rows="3" cols="50"
+			onchange="active_flight.add_comment_to_file_content(this.value)"></textarea></div>
+	<div id="elevation" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)"></div>
+	<div id="speed_gauge" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)"></div>
+	<div id="vario" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)"></div>
+	<div id="point_info" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)">
+		<div>duration&nbsp;</div>
+		<div id="point_info_time">__:__:__</div>
+		<div>elevation (gps)&nbsp;</div>
+		<div id="point_info_elevation_gps">----</div>
+		<div>terrain&nbsp;</div>
+		<div id="point_info_terrain">----</div>
+		<div>speed&nbsp;</div>
+		<div id="point_info_speed">----</div>
+		<div>vario&nbsp;</div>
+		<div id="point_info_vario">----</div>
+		<div>distance&nbsp;</div>
+		<div id="point_info_distance">----</div>
+		<div>finesse&nbsp;</div>
+		<div id="point_info_finesse">----</div>
+		<div>bearing&nbsp;</div>
+		<div id="point_info_bearing">----</div>
+	</div>
+
+	<script>
+		// Synchronous get request
+		async function get(address) {
+			const response = await fetch(address);
+			if (!response.ok) {
+				console.log("Error");
+			}
+			const data = await response.json();
+			return data.elevations;
+		}
+
+		// Get terrain elevation
+		async function get_terrain_elevation(locations) {
+			let elevations;
+			try {
+				let elevations_requests = [];
+				for (i in locations) {
+					elevations_requests[i] = await get('https://data.geopf.fr/altimetrie/1.0/calcul/alti/rest/elevation.json?' + locations[i] + '&resource=ign_rge_alti_wld&zonly=true');
+					await new Promise(resolve => setTimeout(resolve, 200));  // Max 5 requests per second
 				}
-				const data = await response.json();
-				return data.elevations;
+				elevations = [].concat(...elevations_requests);
+			} catch (error) {
+				console.log(error);
+				elevations = new Array(locations.length * 200).fill(0);
+			}
+			return elevations;
+		}
+
+		/* =========================================================================================================== */
+		/* =================================================== Main ================================================== */
+		/* =========================================================================================================== */
+		// Global data for multi-track support
+		var file_name = null;
+		var flights = [];
+		var active_flight = null; // selected track whose stats are shown
+
+		// helper to load a single file into a Flight and update map
+		function loadFileContent(content, name) {
+			let flight = new Flight("flight");
+			flight.load_file(content, name);
+			flights.push(flight);
+			// if this is the first track we load, make it active; otherwise keep current selection
+			if (flights.length === 1) {
+				active_flight = flight;
+			}
+			update_map(flight);
+		}
+
+		// Create file reader and listener used for each file
+		function createFileReader(file) {
+			const reader = new FileReader();
+			reader.addEventListener('load', (event) => {
+				loadFileContent(event.target.result, file.name);
+			});
+			return reader;
+		}
+
+		// Manage URL parameters to pass one or multiple igc/gpx files
+		const params = new URLSearchParams(window.location.search);
+		if (params.toString().length > 0) {
+			// collect file URLs from repeated ?file=... or single ?files=url1,url2
+			let fileUrls = params.getAll('file');
+			const filesParam = params.get('files');
+			if (filesParam) {
+				const splitUrls = filesParam.split(',').map(s => s.trim()).filter(s => s.length > 0);
+				fileUrls = fileUrls.concat(splitUrls);
+			}
+			// fallback: if no getAll but a single 'file' exists
+			if (fileUrls.length === 0 && params.has('file')) {
+				const single = params.get('file');
+				if (single) fileUrls.push(single);
 			}
 
-			// Get terrain elevation
-			async function get_terrain_elevation(locations) {
-				let elevations;
-				try {
-					let elevations_requests = [];
-					for(i in locations) {
-						elevations_requests[i] = await get('https://data.geopf.fr/altimetrie/1.0/calcul/alti/rest/elevation.json?' + locations[i] + '&resource=ign_rge_alti_wld&zonly=true');
-						await new Promise(resolve => setTimeout(resolve, 200));  // Max 5 requests per second
-					}
-					elevations = [].concat(...elevations_requests);
-				} catch (error) {
-					console.log(error);
-					elevations = new Array(locations.length*200).fill(0);
-				}
-				return elevations;
+			fileUrls.forEach((file_url) => {
+				// derive a sensible file name from the URL
+				const parts = file_url.split('/');
+				const name = parts[parts.length - 1].split('?')[0];
+				fetch(file_url)
+					.then(res => res.blob())
+					.then(file_blob => {
+						const reader = new FileReader();
+						reader.addEventListener('load', (event) => {
+							loadFileContent(event.target.result, name);
+						});
+						reader.readAsText(file_blob);
+					})
+					.catch(error => { console.log("Error loading file from url:", error); });
+			});
+		}
+
+		// Load file button – allows multiple tracks selection
+		const fileSelector = document.getElementById('file-selector');
+		fileSelector.addEventListener('change', (event) => {
+			const fileList = event.target.files;
+			for (let i = 0; i < fileList.length; i++) {
+				const file = fileList[i];
+				file_name = file.name;
+				const reader = createFileReader(file);
+				reader.readAsText(file);
 			}
+			// reset value so same file can be picked again later
+			event.target.value = '';
+		});
+		
+		// Create map
+		var map = L.map('map', {
+			center: [47.00068424459144, 2.5548502515601577],
+			zoom: 6,
+			layers: [GeoportailFrance_plan],
+			zoomControl: false
+		});
+		L.control.zoom({
+			position: 'topright'
+		}).addTo(map);
 
-/* =========================================================================================================== */
-/* =================================================== Main ================================================== */
-/* =========================================================================================================== */
-// Global data for multi-track support
-				var file_name = null;
-				var flights = [];
-				var active_flight = null; // selected track whose stats are shown
+		var layerControl = L.control.layers(baseMaps).addTo(map);
 
-				// helper to load a single file into a Flight and update map
-				function loadFileContent(content, name) {
-					let flight = new Flight("flight");
-					flight.load_file(content, name);
-					flights.push(flight);
-					// if this is the first track we load, make it active; otherwise keep current selection
-					if(flights.length === 1) {
-						active_flight = flight;
-					}
-					update_map(flight);
-				}
+	</script>
+</body>
 
-				// Create file reader and listener used for each file
-				function createFileReader(file) {
-					const reader = new FileReader();
-					reader.addEventListener('load', (event) => {
-						loadFileContent(event.target.result, file.name);
-					});
-					return reader;
-				}
-
-			// Manage URL parameters to pass igc file
-			const params = new URLSearchParams(window.location.search);
-if(params.size > 0) {
-const file_url = params.get('file');
-file_name = file_url.split('=').pop();// Get only the file name
-fetch(file_url)
-.then(res => res.blob())
-.then(file_blob => {
-const reader = new FileReader();
-reader.addEventListener('load', (event) => {
-loadFileContent(event.target.result, file_name);
-});
-reader.readAsText(file_blob);
-})
-.catch(error => { console.log("Error loading file from url:", error); });
-}
-// Load file button – allows multiple tracks selection
-const fileSelector = document.getElementById('file-selector');
-fileSelector.addEventListener('change', (event) => {
-const fileList = event.target.files;
-for(let i = 0; i < fileList.length; i++) {
-const file = fileList[i];
-file_name = file.name;
-const reader = createFileReader(file);
-reader.readAsText(file);
-}
-// reset value so same file can be picked again later
-event.target.value = '';
-});
-
-
-						
-			// Create map
-			var map = L.map('map', {
-						center: [47.00068424459144, 2.5548502515601577],
-						zoom: 6,
-						layers: [GeoportailFrance_plan],
-						zoomControl: false
-					});
-			L.control.zoom({
-				position: 'topright'
-			}).addTo(map);
-
-			var layerControl = L.control.layers(baseMaps).addTo(map);
-
-		</script>
-	</body>
 </html>
