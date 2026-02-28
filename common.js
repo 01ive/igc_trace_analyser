@@ -530,12 +530,8 @@ function refresh_map(selectedFlight) {
         }
     });
 
-    // adjust view to contain all tracks
-    if(layers.length > 0) {
-        const group = L.featureGroup(layers);
-        // TODO
-        // map.fitBounds(group.getBounds());
-    }
+    // zoom the map to the polyline
+    map.fitBounds(selectedFlight._polyline.getBounds());
 
     // ===== graphs for selected flight =====
     let [elevation_data, elevation_min, elevation_max, terrain_elevation] = get_elevation(paragliding_stats);
