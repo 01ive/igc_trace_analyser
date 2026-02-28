@@ -24,6 +24,10 @@ var selected_track_weight = 6;          // thickness for the active/selected tra
 var autorize_map_mousemove = true;      // used for mouse interaction toggle
 var map_events_created = false;         // used to create map events only once
 
+// overlay control data for tracks
+var overlays = {};                      // name -> polyline map
+var layerControl = null;               // keep reference to layer control
+
 function dragstart(elem) {
     evt = window.event;
     drag_offset_X = elem.offsetLeft - evt.x;
@@ -404,6 +408,16 @@ async function update_map(flight) {
 var cursor;
 var start_marker;
 var end_marker;
+
+// helper for re-style tracks
+function updatePolylineWeights() {
+    flights.forEach(flight => {
+        if (flight._polyline) {
+            const weight = (flight === active_flight) ? selected_track_weight : default_track_weight;
+            flight._polyline.setStyle({ weight: weight });
+        }
+    });
+}
 // Refresh map
 function refresh_map(selectedFlight) {
     if(!selectedFlight) {
@@ -431,6 +445,12 @@ function refresh_map(selectedFlight) {
                 flight._polyline.remove();
             }
         });
+        // clear existing overlay information and drop control
+        overlays = {};
+        if (layerControl) {
+            layerControl.remove();
+            layerControl = null;
+        }
     } else {
         map.off();
         map.remove();
@@ -445,11 +465,17 @@ function refresh_map(selectedFlight) {
             }).addTo(map);
         var zoom_control_container = zoom_control.getContainer();
         zoom_control_container.id = "zoom_control";
-
-        var layer_control = L.control.layers(baseMaps).addTo(map);
-        var layerControl_container = layer_control.getContainer();
-        layerControl_container.id = "layer_control";
     }   
+    // create a layer control with any base maps; overlays added later
+    layerControl = L.control.layers(baseMaps).addTo(map);
+    var layerControl_container = layerControl.getContainer();
+    layerControl_container.id = "layer_control";
+
+    // update polyline weights when overlays reappear
+    map.on('overlayadd', function(e) {
+        updatePolylineWeights();
+    });
+
 
     // Display UI elements
     document.getElementById('title').style.visibility = 'unset';
@@ -499,7 +525,22 @@ function refresh_map(selectedFlight) {
         });
         flight._polyline = pl; // store reference if needed later
         layers.push(pl);
+
+        // add overlay entry
+        const label = flight.file_name || ('Track ' + (index + 1));
+        overlays[label] = pl;
     });
+
+    // rebuild overlay control so it reflects current flights
+    if (layerControl) {
+        layerControl.remove();
+    }
+    layerControl = L.control.layers(baseMaps, overlays).addTo(map);
+    var layerControl_container = layerControl.getContainer();
+    layerControl_container.id = "layer_control";
+
+    // ensure weights are correct after drawing
+    updatePolylineWeights();
 
     // add markers only for selected flight (start, end, cursor)
     var start_icon = L.icon({iconUrl: 'ressources/marker-icon-g.png', iconSize: [25, 41], iconAnchor: [12, 41]});

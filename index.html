@@ -296,8 +296,8 @@
 			event.target.value = '';
 		});
 		
-		// Create map
-		var map = L.map('map', {
+		// Create map (global variable defined in common.js)
+		map = L.map('map', {
 			center: [47.00068424459144, 2.5548502515601577],
 			zoom: 6,
 			layers: [GeoportailFrance_plan],
@@ -307,7 +307,8 @@
 			position: 'topright'
 		}).addTo(map);
 
-		var layerControl = L.control.layers(baseMaps).addTo(map);
+		// empty overlay control; tracks will be added later
+		layerControl = L.control.layers(baseMaps, overlays).addTo(map);
 
 	</script>
 </body>
