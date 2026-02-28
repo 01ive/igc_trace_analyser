@@ -22,6 +22,8 @@ var track_colors = ['red','blue','green','orange','purple','black','yellow','cya
 var default_track_weight = 3;           // line thickness for unselected tracks
 var selected_track_weight = 6;          // thickness for the active/selected track
 var autorize_map_mousemove = true;      // used for mouse interaction toggle
+var map_events_created = false;         // used to create map events only once
+
 function dragstart(elem) {
     evt = window.event;
     drag_offset_X = elem.offsetLeft - evt.x;
@@ -500,7 +502,6 @@ function refresh_map(selectedFlight) {
     });
 
     // add markers only for selected flight (start, end, cursor)
-    //var last_item = paragliding_stats.length - 1;
     var start_icon = L.icon({iconUrl: 'ressources/marker-icon-g.png', iconSize: [25, 41], iconAnchor: [12, 41]});
     var end_icon = L.icon({iconUrl: 'ressources/marker-icon-r.png', iconSize: [25, 41], iconAnchor: [12, 41]});
     start_marker = L.marker([paragliding_stats[0].latitude, paragliding_stats[0].longitude], {icon: start_icon}).addTo(map);
@@ -509,29 +510,32 @@ function refresh_map(selectedFlight) {
     cursor = L.marker([paragliding_stats[0].latitude, paragliding_stats[0].longitude], {icon: paraglider_icon});
     cursor.addTo(map);
 
-    // interaction on map (refers to active_flight internally via closest_point)
-    map.on('mousemove', function(ev) {
-        if( (auto_play_timer == 0) && (autorize_map_mousemove) && active_flight ) {
-            var latlng = map.mouseEventToLatLng(ev.originalEvent);
-            let idx = closest_point(latlng.lat, latlng.lng);
-            update_position(idx);
-        }
-    });
-    map.on('click', function(ev) {
-        if(autorize_map_mousemove) {
-            autorize_map_mousemove = false;
-        } else {
-            autorize_map_mousemove = true;
-        }
-        if(active_flight) {
-            var latlng = map.mouseEventToLatLng(ev.originalEvent);
-            let idx = closest_point(latlng.lat, latlng.lng);
-            update_position(idx);
-        }
-    });
+    // var autorize_map_mousemove = true;
 
-    // zoom the map to the polyline
-    map.fitBounds(selectedFlight._polyline.getBounds());
+    if (!map_events_created) {
+        map_events_created = true;
+        // interaction on map (refers to active_flight internally via closest_point)
+        map.on('mousemove', function(ev) {
+            if( (auto_play_timer == 0) && (autorize_map_mousemove) && active_flight ) {
+                var latlng = map.mouseEventToLatLng(ev.originalEvent);
+                let idx = closest_point(latlng.lat, latlng.lng);
+                update_position(idx);
+            }
+        });
+        map.on('click', function(ev) {
+            if(autorize_map_mousemove) {
+                autorize_map_mousemove = false;
+            } else {
+                autorize_map_mousemove = true;
+            }
+            var latlng = map.mouseEventToLatLng(ev.originalEvent);
+            let idx = closest_point(latlng.lat, latlng.lng);
+            update_position(idx);
+        });
+
+        // zoom the map to the polyline
+        map.fitBounds(selectedFlight._polyline.getBounds());
+    }
 
     // ===== graphs for selected flight =====
     let [elevation_data, elevation_min, elevation_max, terrain_elevation] = get_elevation(paragliding_stats);
