@@ -15,6 +15,19 @@ function visibility_checkbox_action(item) {
 // Manage draggable items
 var drag_offset_X;
 var drag_offset_Y;
+
+// Multi-track support
+var flights = [];                       // array of Flight objects
+var track_colors = ['red','blue','green','orange','purple','black','yellow','cyan'];
+var default_track_weight = 3;           // line thickness for unselected tracks
+var selected_track_weight = 6;          // thickness for the active/selected track
+var autorize_map_mousemove = true;      // used for mouse interaction toggle
+var map_events_created = false;         // used to create map events only once
+
+// overlay control data for tracks
+var overlays = {};                      // name -> polyline map
+var layerControl = null;               // keep reference to layer control
+
 function dragstart(elem) {
     evt = window.event;
     drag_offset_X = elem.offsetLeft - evt.x;
@@ -136,13 +149,16 @@ function stop() {
 /* ============================================ Dynamic functions ============================================ */
 /* =========================================================================================================== */
 function closest_point(lat, lon) {
+    if(!active_flight || !active_flight.paragliding_info) {
+        return 0;
+    }
     let paragliding_stats = active_flight.paragliding_info;
-    let best_delta = 999999999999;
+    let best_delta = Number.POSITIVE_INFINITY;
     let best_point = 0;
-    for(point in paragliding_stats) {
-        delta_lat = Math.abs(paragliding_stats[point].latitude - lat);
-        delta_lon = Math.abs(paragliding_stats[point].longitude - lon);
-        delta = delta_lat**2 + delta_lon**2;
+    for(let point in paragliding_stats) {
+        let delta_lat = Math.abs(paragliding_stats[point].latitude - lat);
+        let delta_lon = Math.abs(paragliding_stats[point].longitude - lon);
+        let delta = delta_lat**2 + delta_lon**2;
         if(best_delta > delta) {
             best_delta = delta;
             best_point = point;
@@ -362,68 +378,106 @@ var baseMaps = {
 /* =========================================================================================================== */
 // Calculate data and refresh map
 async function update_map(flight) {
+    // process only the newly loaded flight (flight has already been pushed into flights)
     user_message = document.getElementById('user_message');
     user_message.style.visibility = 'visible';
     await new Promise(resolve => setTimeout(resolve, 100)); // Give time to refresh display
     flight.process_flight_info();
     user_message.style.visibility = 'hidden';
-      
+
     if(! flight.paragliding_info[0].terrain_elevation) {
-        // Process terrain elevation asynchronously
+        // Process terrain elevation asynchronously for this flight
         let locations = flight.paragliding_info.get_positions_by_group(200);
         get_terrain_elevation(locations).then((elevations) => {
             flight.paragliding_info.set_terrain_elevation(elevations);
             flight.add_terrain_elevation_to_file_content();
             elevation_graph = document.getElementById('elevation');
-            // Refresh terrain elevation graph
-            Plotly.restyle(elevation_graph, {
-                y: [elevations]
-            }, [1]);
+            // Refresh terrain elevation graph if this flight is currently active
+            if (flight === active_flight) {
+                Plotly.restyle(elevation_graph, {
+                    y: [elevations]
+                }, [1]);
+            }
         });
     }
 
-    refresh_map(flight);
+    // redraw the map and stats for the selected/active flight
+    refresh_map(active_flight || flight);
 }
 
-// Refresh map
-function refresh_map(flight) {
-    let paragliding_stats = flight.paragliding_info;
+var cursor;
+var start_marker;
+var end_marker;
 
-    // Update globals infos
-    update_globals_infos(flight);
+// helper for re-style tracks
+function updatePolylineWeights() {
+    flights.forEach(flight => {
+        if (flight._polyline) {
+            const weight = (flight === active_flight) ? selected_track_weight : default_track_weight;
+            flight._polyline.setStyle({ weight: weight });
+        }
+    });
+}
+// Refresh map
+function refresh_map(selectedFlight) {
+    if(!selectedFlight) {
+        return; // nothing to show
+    }
+    let paragliding_stats = selectedFlight.paragliding_info;
+
+    // Update globals infos for the selected track
+    update_globals_infos(selectedFlight);
 
     // Update comments
-    if(flight.comment) {
-        document.getElementById("comment_text").value = flight.comment;
+    if(selectedFlight.comment) {
+        document.getElementById("comment_text").value = selectedFlight.comment;
     } else {    // Default value if no comments in file
         document.getElementById("comment_text").value = "site: \nmonitor: \n";
     }
     
-    // Delete existing map
-    if (map && map.remove) {
+    // If map does not exist, create it. Otherwise, just update the displayed tracks and stats
+    if (cursor) {
+        cursor.remove();
+        start_marker.remove();
+        end_marker.remove();
+        flights.forEach((flight) => {
+            if (flight._polyline) {
+                flight._polyline.remove();
+            }
+        });
+        // clear existing overlay information and drop control
+        overlays = {};
+        if (layerControl) {
+            layerControl.remove();
+            layerControl = null;
+        }
+    } else {
         map.off();
         map.remove();
-    }
-
-    // Create map
-    map = L.map('map', {
-        center: [flight.center_lat, flight.center_lon],
-        zoom: 13,
-        layers: [GeoportailFrance_plan],
-        zoomControl: false
-    });
-
-    var zoom_control = L.control.zoom({
-        position: 'topright'
-    }).addTo(map);
-    var zoom_control_container = zoom_control.getContainer();
-    zoom_control_container.id = "zoom_control";
-
-    var layer_control = L.control.layers(baseMaps).addTo(map);
-    var layerControl_container = layer_control.getContainer();
+        map = L.map('map', {
+            center: [selectedFlight.center_lat, selectedFlight.center_lon],
+            zoom: 13,
+            layers: [GeoportailFrance_plan],
+            zoomControl: false
+        });
+        var zoom_control = L.control.zoom({
+            position: 'topright'
+            }).addTo(map);
+        var zoom_control_container = zoom_control.getContainer();
+        zoom_control_container.id = "zoom_control";
+    }   
+    // create a layer control with any base maps; overlays added later
+    layerControl = L.control.layers(baseMaps).addTo(map);
+    var layerControl_container = layerControl.getContainer();
     layerControl_container.id = "layer_control";
 
-    // Display all elements
+    // update polyline weights when overlays reappear
+    map.on('overlayadd', function(e) {
+        updatePolylineWeights();
+    });
+
+
+    // Display UI elements
     document.getElementById('title').style.visibility = 'unset';
     document.getElementById('elevation').style.visibility = 'unset';
     document.getElementById('point_info').style.visibility = 'unset';
@@ -443,49 +497,88 @@ function refresh_map(flight) {
     document.getElementById('chkbx_speed_gauge').checked = false;
     document.getElementById('chkbx_vario').checked = false;
 
-    // Create events for key press
+    // events
     window.addEventListener("keypress", (k) => key_commands(k));
-    
+
     // Add icons
     var last_item = Object.keys(paragliding_stats).length-1 ;
+
+    // draw all flights as polylines with unique color/weight and attach click handler
+    let layers = [];
+    flights.forEach((flight, index) => {
+        const stats = flight.paragliding_info;
+        // build array of [lat,lon] from stats
+        const latlngs = [];
+        for(let i in stats) {
+            latlngs.push([stats[i].latitude, stats[i].longitude]);
+        }
+        const color = track_colors[index % track_colors.length];
+        const weight = (flight === selectedFlight) ? selected_track_weight : default_track_weight;
+        const pl = L.polyline(latlngs, {color: color, weight: weight});
+        pl.addTo(map);
+        pl.on('click', (e) => {
+            // prevent the map click handler from toggling autorize_map_mousemove
+            L.DomEvent.stopPropagation(e);
+            // when a polyline is clicked, make it active and redraw
+            active_flight = flight;
+            refresh_map(flight);
+        });
+        flight._polyline = pl; // store reference if needed later
+        layers.push(pl);
+
+        // add overlay entry
+        const label = flight.file_name || ('Track ' + (index + 1));
+        overlays[label] = pl;
+    });
+
+    // rebuild overlay control so it reflects current flights
+    if (layerControl) {
+        layerControl.remove();
+    }
+    layerControl = L.control.layers(baseMaps, overlays).addTo(map);
+    var layerControl_container = layerControl.getContainer();
+    layerControl_container.id = "layer_control";
+
+    // ensure weights are correct after drawing
+    updatePolylineWeights();
+
+    // add markers only for selected flight (start, end, cursor)
     var start_icon = L.icon({iconUrl: 'ressources/marker-icon-g.png', iconSize: [25, 41], iconAnchor: [12, 41]});
     var end_icon = L.icon({iconUrl: 'ressources/marker-icon-r.png', iconSize: [25, 41], iconAnchor: [12, 41]});
-    L.marker([paragliding_stats[0].latitude, paragliding_stats[0].longitude], {icon: start_icon}).addTo(map);
-    L.marker([paragliding_stats[last_item].latitude, paragliding_stats[last_item].longitude], {icon: end_icon}).addTo(map);			
+    start_marker = L.marker([paragliding_stats[0].latitude, paragliding_stats[0].longitude], {icon: start_icon}).addTo(map);
+    end_marker = L.marker([paragliding_stats[last_item].latitude, paragliding_stats[last_item].longitude], {icon: end_icon}).addTo(map);			
     var paraglider_icon = L.icon({iconUrl: 'ressources/paraglider.png', iconSize: [25, 23], iconAnchor: [12, 20]});
     cursor = L.marker([paragliding_stats[0].latitude, paragliding_stats[0].longitude], {icon: paraglider_icon});
     cursor.addTo(map);
-    
-    // Create trace
-    var latlngs = [];
-    for(let point in paragliding_stats) {
-        latlngs.push([paragliding_stats[point].latitude, paragliding_stats[point].longitude]);
-    }
-    geo = L.polyline(latlngs, {color: 'red'});
-    var autorize_map_mousemove = true;
-    map.on('mousemove', function(ev) {
-            if( (auto_play_timer == 0) && (autorize_map_mousemove) ) {
+
+    // var autorize_map_mousemove = true;
+
+    if (!map_events_created) {
+        map_events_created = true;
+        // interaction on map (refers to active_flight internally via closest_point)
+        map.on('mousemove', function(ev) {
+            if( (auto_play_timer == 0) && (autorize_map_mousemove) && active_flight ) {
                 var latlng = map.mouseEventToLatLng(ev.originalEvent);
-                closest_point_index = closest_point(latlng.lat, latlng.lng);
-                update_position(closest_point_index);
+                let idx = closest_point(latlng.lat, latlng.lng);
+                update_position(idx);
             }
         });
-    map.on('click', function(ev) {
-        if(autorize_map_mousemove) {
-            autorize_map_mousemove = false;
-        } else {
-            autorize_map_mousemove = true;
-        }
-        var latlng = map.mouseEventToLatLng(ev.originalEvent);
-        closest_point_index = closest_point(latlng.lat, latlng.lng);
-        update_position(closest_point_index);
-    });
-    geo.addTo(map);
+        map.on('click', function(ev) {
+            if(autorize_map_mousemove) {
+                autorize_map_mousemove = false;
+            } else {
+                autorize_map_mousemove = true;
+            }
+            var latlng = map.mouseEventToLatLng(ev.originalEvent);
+            let idx = closest_point(latlng.lat, latlng.lng);
+            update_position(idx);
+        });
 
-    // zoom the map to the polyline
-    map.fitBounds(geo.getBounds());
+        // zoom the map to the polyline
+        map.fitBounds(selectedFlight._polyline.getBounds());
+    }
 
-    // Create elevation graph
+    // ===== graphs for selected flight =====
     let [elevation_data, elevation_min, elevation_max, terrain_elevation] = get_elevation(paragliding_stats);
     let [distance_data, distance_min, distance_max] = get_distance(paragliding_stats);
 
