@@ -86,7 +86,22 @@ function save_cmd() {
         document.body.removeChild(lien);
 
         URL.revokeObjectURL(url);  // Clean memory
+
+        // Send IGC content to parent page if in an iframe
+        function iframe_message(blob) {
+            // i-frame detection to adapt UI when embedded in another page (e.g. for sharing on a blog or forum)
+            if (window.self !== window.top) {
+                console.log("I am in an iframe!");
+                window.parent.postMessage({
+                    type: 'IGC_READY',
+                    payload: blob
+                }, '*');
+            } else {
+                console.log("I am opened directly.");
+            }
         }
+        iframe_message(blob);
+    }
     sauvegarderFichier();
 }
 
