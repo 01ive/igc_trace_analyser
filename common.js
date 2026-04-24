@@ -72,10 +72,10 @@ function save_cmd() {
             active_flight.add_terrain_elevation_to_file_content();
             active_flight.add_comment_to_file_content(document.getElementById("comment_text").value);
         }
-        const contenu = active_flight.file_content;
+        const content = active_flight.file_content;
         const nomFichier = active_flight.file_name;
 
-        const blob = new Blob([contenu], { type: "text/plain" });
+        const blob = new Blob([content], { type: "text/plain" });
         const url = URL.createObjectURL(blob);
 
         const lien = document.createElement("a");
@@ -86,7 +86,31 @@ function save_cmd() {
         document.body.removeChild(lien);
 
         URL.revokeObjectURL(url);  // Clean memory
+
+        // Send IGC content to parent page if in an iframe
+        function iframe_message(content, flight) {
+            // i-frame detection to adapt UI when embedded in another page (e.g. for sharing on a blog or forum)
+            if (window.self !== window.top) {
+                console.log("I am in an iframe!");
+
+                var new_flight_data = {};
+                new_flight_data = flight.flight_info;
+                new_flight_data.file_name = flight.file_name;
+                new_flight_data.site = flight.site;
+                new_flight_data.monitor = flight.monitor;
+                new_flight_data.comment = flight.comment;
+
+                window.parent.postMessage({
+                    type: 'IGC_READY',
+                    payload: blob,
+                    metadata: new_flight_data
+                }, '*');
+            } else {
+                console.log("I am opened directly.");
+            }
         }
+        iframe_message(content, active_flight);
+    }
     sauvegarderFichier();
 }
 
