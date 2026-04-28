@@ -22,25 +22,24 @@ body {
     visibility: hidden;
 }
 
+#control_buttons {
+    position: relative;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+}
+
 #menu_button {
-    position: absolute;
-    top: 20px;
-    left: 10px;
-    width: 50px;
-    height: 50px;
     border-radius: 4px;
     z-index: 5;
     border: 2px solid rgba(0, 0, 0, 0.2);
 }
 
 #my-file-selector {
-    display: block;
     cursor: pointer;
     background-color: white;
-    background-image: url("ressources/folder.png");
-    background-repeat: no-repeat;
-    background-position: center;
-    height: 100%;
+    font-size: 40px;
     border-radius: 2px;
 }
 
@@ -49,11 +48,6 @@ body {
 }
 
 #play_stop_button {
-    position: absolute;
-    top: 20px;
-    left: 65px;
-    width: 25px;
-    height: 25px;
     border-radius: 4px;
     border: 2px solid rgba(0, 0, 0, 0.2);
     z-index: 5;
@@ -61,15 +55,10 @@ body {
 }
 
 #play_picture {
-    display: block;
     cursor: pointer;
     background-color: white;
-    background-image: url("ressources/play.png");
-    background-repeat: no-repeat;
-    background-position: center;
+    font-size: 40px;
     border-radius: 2px;
-    height: 100%;
-    width: 100%;
 }
 
 #play_picture:hover {
@@ -77,11 +66,6 @@ body {
 }
 
 #speed_button {
-    position: absolute;
-    top: 20px;
-    left: 95px;
-    width: 25px;
-    height: 25px;
     border-radius: 4px;
     border: 2px solid rgba(0, 0, 0, 0.2);
     z-index: 5;
@@ -89,71 +73,43 @@ body {
 }
 
 #speed_picture {
-    display: block;
     cursor: pointer;
     background-color: white;
-    background-image: url("ressources/fastforward.png");
-    background-repeat: no-repeat;
-    background-position: center;
+    font-size: 40px;
     border-radius: 2px;
-    height: 100%;
-    width: 100%;
 }
 
 #visibility_button {
-    position: absolute;
-    top: 50px;
-    left: 65px;
-    width: 55px;
-    height: 20px;
     border-radius: 4px;
     border: 2px solid rgba(0, 0, 0, 0.2);
     z-index: 5;
     visibility: hidden;
+    position: relative;
 }
 
 #visibility_picture {
-    display: block;
     cursor: pointer;
     background-color: white;
-    background-image: url("ressources/view.png");
-    background-repeat: no-repeat;
-    background-position: center;
+    font-size: 40px;
     border-radius: 2px;
-    height: 100%;
-    width: 100%;
 }
 
 #comment_button {
-    position: absolute;
-    top: 20px;
-    left: 125px;
-    width: 25px;
-    height: 25px;
     border-radius: 4px;
     border: 2px solid rgba(0, 0, 0, 0.2);
     z-index: 5;
     visibility: hidden;
+    position: relative;
 }
 
 #comment_picture {
-    display: block;
     cursor: pointer;
     background-color: white;
-    background-image: url("ressources/comment.png");
-    background-repeat: no-repeat;
-    background-position: center;
+    font-size: 40px;
     border-radius: 2px;
-    height: 100%;
-    width: 100%;
 }
 
 #save_button {
-    position: absolute;
-    top: 50px;
-    left: 125px;
-    width: 25px;
-    height: 20px;
     border-radius: 4px;
     border: 2px solid rgba(0, 0, 0, 0.2);
     z-index: 5;
@@ -161,28 +117,26 @@ body {
 }
 
 #save_picture {
-    display: block;
     cursor: pointer;
     background-color: white;
-    background-image: url("ressources/save.png");
-    background-repeat: no-repeat;
-    background-position: center;
+    font-size: 40px;
     border-radius: 2px;
-    height: 100%;
-    width: 100%;
 }
 
 #visibility_menu {
     position: absolute;
     visibility: hidden;
-    top: 50px;
-    left: 65px;
+    bottom: 100%;
+    top: 0;
+    left: 0;
     z-index: 10;
     font-size: 14px;
     border-radius: 4px;
     border: 2px solid rgba(0, 0, 0, 0.2);
     background-color: rgba(255, 255, 255);
     padding: 5px;
+    width: max-content;
+    height: fit-content;
 }
 
 #speed_picture:hover {
@@ -194,13 +148,15 @@ body {
     height: 100vh;
     position: absolute;
     z-index: 0;
+    top: 0px;
+    left: 0px;
 }
 
 #comment {
     position: absolute;
-    top: 20px;
-    left: 155px;
-    z-index: 1;
+    bottom: auto;
+    left: 0px;
+    z-index: 5;
     background-color: rgba(255, 255, 255, 0.5);
     border-radius: 2px;
     padding: 2px;
@@ -270,15 +226,14 @@ body {
 }
 
 #title {
-    position: absolute;
-    top: 80px;
-    left: 15px;
-    z-index: 5;
+    position: relative;
+    z-index: 1;
     font-size: 14px;
     font-weight: bold;
     cursor: move;
     background-color: rgba(255, 255, 255, 0.5);
     visibility: hidden;
+    width: fit-content;
 }
 
 #table {

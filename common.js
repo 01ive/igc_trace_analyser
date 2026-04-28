@@ -5,10 +5,14 @@
 function visibility_checkbox_action(item) {
     if(item.checked) {
         document.getElementById(item.value).style.visibility = 'visible';
-        document.getElementById(item.value).style.zIndex = 5;
+        if(item.id =="chkbx_elevation") {
+            document.getElementById(item.value).style.zIndex = 3;
+        }
     } else {
         document.getElementById(item.value).style.visibility = 'hidden';
-        document.getElementById(item.value).style.zIndex = -5;
+        if(item.id =="chkbx_elevation") {
+            document.getElementById(item.value).style.zIndex = -3;
+        }
     }
 }
 
@@ -48,6 +52,7 @@ function key_commands(k) {
         play_cmd();
     } else if(k.key.toLowerCase() == 'v') {
         document.getElementById("control_buttons").style.visibility='visible';
+        document.getElementById("control_buttons").style.zIndex = 3;
         document.getElementById("chkbx_control_buttons").checked = true;
     }
 }
@@ -131,10 +136,10 @@ function play_cmd() {
             max_nb_points = flight.flight_info.number_of_point;
         }
         if(auto_play_timer == 0) {
-            document.getElementById("play_picture").style.backgroundImage="url(ressources/pause.png)";
+            document.getElementById("play_picture").innerText="⏸️";
             play();
         } else {
-            document.getElementById("play_picture").style.backgroundImage="url(ressources/play.png)";
+            document.getElementById("play_picture").innerText="▶️";
             stop();
         }
     }
