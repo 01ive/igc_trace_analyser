@@ -34,6 +34,10 @@ body {
     border-radius: 4px;
     z-index: 5;
     border: 2px solid rgba(0, 0, 0, 0.2);
+    background-color: white;
+}
+#menu_button:hover {
+    background-color: whitesmoke;
 }
 
 #my-file-selector {
@@ -108,6 +112,9 @@ body {
     font-size: 40px;
     border-radius: 2px;
 }
+#comment_picture:hover {
+    background-color: whitesmoke;
+}
 
 #save_button {
     border-radius: 4px;
@@ -121,6 +128,12 @@ body {
     background-color: white;
     font-size: 40px;
     border-radius: 2px;
+}
+#save_picture:hover {
+    background-color: whitesmoke;
+}
+#comment_picture:hover {
+    background-color: whitesmoke;
 }
 
 #visibility_menu {
