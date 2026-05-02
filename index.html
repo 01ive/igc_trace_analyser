@@ -243,7 +243,11 @@
 			if (flights.length === 1) {
 				active_flight = flight;
 			}
-			update_map(flight);
+			if(typeof map !== 'undefined' && map !== null) {
+				update_map(flight);
+			} else {
+				view_3D_cmd();
+			}
 		}
 
 		// Create file reader and listener used for each file
