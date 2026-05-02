@@ -13,6 +13,9 @@
 		integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 	<script src="common.js"></script>
 	<script src="bundle.js"></script>
+
+	<script src="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Cesium.js"></script>
+  	<link href="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 </head>
 
 <body>
@@ -59,6 +62,9 @@
 				<label><input type="checkbox" id="chkbx_control_buttons" value="control_buttons" checked
 						onclick='visibility_checkbox_action(this);'>Control buttons</label><br>
 			</div>
+		</div>
+		<div id="view_3D_button">
+			<div id="view_3D_picture" onclick="view_3D_cmd()">🗻</div>
 		</div>
 	</div>
 	<div id="title" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)">
@@ -309,6 +315,46 @@
 
 		// empty overlay control; tracks will be added later
 		layerControl = L.control.layers(baseMaps, overlays).addTo(map);
+
+		function view_3D_cmd() {
+			// Remove Leaflet map if it exists (to free memory and avoid conflicts with Cesium)
+			if (this.map) {
+				this.map.off(); // Supprime les events
+				this.map.remove(); // Détruit la carte et vide le DOM du conteneur
+				this.map = null;
+			}
+
+			// 1. TA CLEF API ICI
+			Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI0MjQzY2JjMS04MzUwLTQwMjAtOGU3OS04YTllY2IxOGNmNzIiLCJpZCI6NDI2NDQyLCJpc3MiOiJodHRwczovL2lvbi5jZXNpdW0uY29tIiwiYXVkIjoidW5kZWZpbmVkX2RlZmF1bHQiLCJpYXQiOjE3Nzc3MzQwOTh9.PTbFo_76HwlflPAK7qaDiZfM6hVfOxd0IO6-wdWCj_M';
+
+			// 2. Initialisation du Viewer avec le relief mondial (Terrain)
+			const viewer = new Cesium.Viewer('map', {
+			terrain: Cesium.Terrain.fromWorldTerrain(), // Active le relief 3D
+			baseLayerPicker: false, // On garde l'imagerie par défaut
+			});
+
+			// 3. Exemple : Ajout d'une trace de parapente (Polyline)
+			// On définit des points : [Longitude, Latitude, Altitude en mètres]
+			const cesium_track = [];
+			for (let i = 0; i < active_flight.paragliding_info.length(); i++) {
+				cesium_track.push(active_flight.paragliding_info[i].longitude);
+				cesium_track.push(active_flight.paragliding_info[i].latitude);
+				cesium_track.push(active_flight.paragliding_info[i].gpsAltitude);
+			}
+		
+			const flightPath = viewer.entities.add({
+			name: 'Trace Parapente Test',
+			polyline: {
+				positions: Cesium.Cartesian3.fromDegreesArrayHeights(cesium_track),
+				width: 3,
+				material: Cesium.Color.RED,
+				relativeToGround: false // Important pour voir l'altitude réelle
+			}
+			});
+
+			// 4. Zoomer sur la trace
+			viewer.zoomTo(flightPath);
+		}
 
 	</script>
 </body>

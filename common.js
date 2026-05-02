@@ -133,7 +133,7 @@ function play_cmd() {
         try {
             max_nb_points = paragliding_stats.length();
         } catch {
-            max_nb_points = flight.flight_info.number_of_point;
+            max_nb_points = active_flight.flight_info.number_of_point;
         }
         if(auto_play_timer == 0) {
             document.getElementById("play_picture").innerText="⏸️";
