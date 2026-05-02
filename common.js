@@ -133,7 +133,7 @@ function play_cmd() {
         try {
             max_nb_points = paragliding_stats.length();
         } catch {
-            max_nb_points = flight.flight_info.number_of_point;
+            max_nb_points = active_flight.flight_info.number_of_point;
         }
         if(auto_play_timer == 0) {
             document.getElementById("play_picture").innerText="⏸️";
@@ -197,11 +197,24 @@ function closest_point(lat, lon) {
 }
 function update_position(position_index) {
     let paragliding_stats = active_flight.paragliding_info;
-    latlng = new leaflet.LatLng(0, 0);
-    // Update cursor
-    latlng.lat = paragliding_stats[position_index].latitude;
-    latlng.lng = paragliding_stats[position_index].longitude;
-    cursor.setLatLng(latlng);
+    
+    // Update cursor in 2D view only if it exists
+    if (cursor) {
+        latlng = new leaflet.LatLng(0, 0);
+        latlng.lat = paragliding_stats[position_index].latitude;
+        latlng.lng = paragliding_stats[position_index].longitude;
+        cursor.setLatLng(latlng);
+    }
+    
+    // Update 3D marker if viewer exists
+    if (cesium_paraglider_marker) {
+        cesium_paraglider_marker.position = Cesium.Cartesian3.fromDegrees(
+            paragliding_stats[position_index].longitude,
+            paragliding_stats[position_index].latitude,
+            paragliding_stats[position_index].gpsAltitude
+        );
+    }
+    
     // Update info
     display_stats(paragliding_stats[position_index]);
     // Update speed
@@ -437,6 +450,10 @@ async function update_map(flight) {
 var cursor;
 var start_marker;
 var end_marker;
+var cesium_viewer;
+var cesium_paraglider_marker;
+var cesium_polylines = [];  // array of Cesium polylines for multitracks
+var cesium_entities = [];   // array of all Cesium entities to clean up
 
 // helper for re-style tracks
 function updatePolylineWeights() {
@@ -452,6 +469,7 @@ function refresh_map(selectedFlight) {
     if(!selectedFlight) {
         return; // nothing to show
     }
+    
     let paragliding_stats = selectedFlight.paragliding_info;
 
     // Update globals infos for the selected track
@@ -521,6 +539,7 @@ function refresh_map(selectedFlight) {
     document.getElementById('comment_button').style.visibility = 'unset';
     document.getElementById('save_button').style.visibility = 'unset';
     document.getElementById('comment').style.visibility = 'hidden';
+    document.getElementById('view_3D_button').style.visibility = 'unset';
     
     // Uncheck hidden objects
     document.getElementById('chkbx_speed_gauge').checked = false;
@@ -692,4 +711,154 @@ function refresh_map(selectedFlight) {
     Plotly.newPlot('speed_gauge', gauge_data, gauge_layout, { displayModeBar: false });
     // Create Vario
     Plotly.newPlot('vario', vario_data, vario_layout, { displayModeBar: false });
+}
+
+/* =========================================================================================================== */
+/* ================================================= 3D mode ================================================= */
+/* =========================================================================================================== */
+
+function view_3D_cmd() {    
+    // Remove Leaflet map if it exists (to free memory and avoid conflicts with Cesium)
+    if (typeof map !== 'undefined' && map !== null) {
+        map.off();
+        map.remove();
+        map = null;
+        cursor = null;
+        start_marker = null;
+        end_marker = null;
+        
+        cesium_polylines = [];
+        cesium_entities = [];
+
+        // 1. TA CLEF API ICI
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI0MjQzY2JjMS04MzUwLTQwMjAtOGU3OS04YTllY2IxOGNmNzIiLCJpZCI6NDI2NDQyLCJpc3MiOiJodHRwczovL2lvbi5jZXNpdW0uY29tIiwiYXVkIjoidW5kZWZpbmVkX2RlZmF1bHQiLCJpYXQiOjE3Nzc3MzQwOTh9.PTbFo_76HwlflPAK7qaDiZfM6hVfOxd0IO6-wdWCj_M';
+
+        // 2. Initialisation du Viewer avec le relief mondial (Terrain)
+        cesium_viewer = new Cesium.Viewer('map', {
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+            baseLayerPicker: false,
+        });
+
+        // 3. Add all flights as polylines with unique colors (multitracks support)
+        let bounds = [];
+        let flightPolylines = {}; // Map flight to polyline for click handling
+        
+        flights.forEach((flight, index) => {
+            const stats = flight.paragliding_info;
+            const cesium_track = [];
+            
+            for (let i = 0; i < stats.length(); i++) {
+                cesium_track.push(stats[i].longitude);
+                cesium_track.push(stats[i].latitude);
+                cesium_track.push(stats[i].gpsAltitude);
+                if (i === 0) {
+                    bounds.push([stats[i].latitude, stats[i].longitude]);
+                }
+                if (i === stats.length() - 1) {
+                    bounds.push([stats[i].latitude, stats[i].longitude]);
+                }
+            }
+
+            // Get color for this flight
+            const cesiumColor = getCesiumColor(track_colors[index % track_colors.length]);
+            const lineWidth = (flight === active_flight) ? selected_track_weight : default_track_weight;
+
+            // Add polyline for this flight
+            const polyline = cesium_viewer.entities.add({
+                name: flight.file_name || ('Track ' + (index + 1)),
+                polyline: {
+                    positions: Cesium.Cartesian3.fromDegreesArrayHeights(cesium_track),
+                    width: lineWidth,
+                    material: cesiumColor,
+                    relativeToGround: false,
+                    clampToGround: false
+                }
+            });
+            
+            // Store reference to flight for click handling
+            polyline.flightIndex = index;
+            polyline.flight = flight;
+            flightPolylines[index] = polyline;
+            cesium_polylines.push(polyline);
+            cesium_entities.push(polyline);
+        });
+
+        // Add a single click handler for all polylines
+        const handler = new Cesium.ScreenSpaceEventHandler(cesium_viewer.scene.canvas);
+        handler.setInputAction(function onLeftClick(movement) {
+            const pickedObject = cesium_viewer.scene.pick(movement.position);
+            if (Cesium.defined(pickedObject) && pickedObject.id && pickedObject.id.flightIndex !== undefined) {
+                const flight = pickedObject.id.flight;
+                if (flight !== active_flight) {
+                    active_flight = flight;
+                    // Update polyline widths without full redraw
+                    flights.forEach((f, idx) => {
+                        if (flightPolylines[idx]) {
+                            flightPolylines[idx].polyline.width = (f === active_flight) ? selected_track_weight : default_track_weight;
+                        }
+                    });
+                }
+            }
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+        // 4. Add paraglider marker
+        const start_point = active_flight.paragliding_info[0];
+        cesium_paraglider_marker = cesium_viewer.entities.add({
+            name: 'Parapente',
+            position: Cesium.Cartesian3.fromDegrees(
+                start_point.longitude,
+                start_point.latitude,
+                start_point.gpsAltitude
+            ),
+            billboard: {
+                image: 'ressources/paraglider.png',
+                scale: 1.0,
+                verticalOrigin: Cesium.VerticalOrigin.BOTTOM
+            }
+        });
+        cesium_entities.push(cesium_paraglider_marker);
+
+        // 5. Zoom to all tracks
+        cesium_viewer.zoomTo(cesium_viewer.entities);
+    } else {
+        // Clean up previous Cesium viewer if it exists
+        if (cesium_viewer) {
+            cesium_viewer.destroy();
+            cesium_viewer = null;
+            cesium_paraglider_marker = null;
+            cesium_polylines = [];
+            cesium_entities = [];
+        }
+
+        // Create map (global variable defined in common.js)
+		map = L.map('map', {
+			center: [47.00068424459144, 2.5548502515601577],
+			zoom: 6,
+			layers: [GeoportailFrance_plan],
+			zoomControl: false
+		});
+		L.control.zoom({
+			position: 'topright'
+		}).addTo(map);
+
+		// empty overlay control; tracks will be added later
+		layerControl = L.control.layers(baseMaps, overlays).addTo(map);
+        refresh_map(active_flight);
+        map.fitBounds(active_flight._polyline.getBounds());
+    }
+}
+
+// Convert Leaflet color names to Cesium colors
+function getCesiumColor(colorName) {
+    const colorMap = {
+        'red': Cesium.Color.RED,
+        'blue': Cesium.Color.BLUE,
+        'green': Cesium.Color.GREEN,
+        'orange': Cesium.Color.ORANGE,
+        'purple': Cesium.Color.PURPLE,
+        'black': Cesium.Color.BLACK,
+        'yellow': Cesium.Color.YELLOW,
+        'cyan': Cesium.Color.CYAN
+    };
+    return colorMap[colorName] || Cesium.Color.WHITE;
 }

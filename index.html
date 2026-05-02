@@ -13,6 +13,9 @@
 		integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 	<script src="common.js"></script>
 	<script src="bundle.js"></script>
+
+	<script src="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Cesium.js"></script>
+  	<link href="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 </head>
 
 <body>
@@ -59,6 +62,9 @@
 				<label><input type="checkbox" id="chkbx_control_buttons" value="control_buttons" checked
 						onclick='visibility_checkbox_action(this);'>Control buttons</label><br>
 			</div>
+		</div>
+		<div id="view_3D_button">
+			<div id="view_3D_picture" onclick="view_3D_cmd()">🗻</div>
 		</div>
 	</div>
 	<div id="title" draggable="true" ondragstart="dragstart(this)" ondragend="dragend(this)">
@@ -237,7 +243,11 @@
 			if (flights.length === 1) {
 				active_flight = flight;
 			}
-			update_map(flight);
+			if(typeof map !== 'undefined' && map !== null) {
+				update_map(flight);
+			} else {
+				view_3D_cmd();
+			}
 		}
 
 		// Create file reader and listener used for each file
@@ -309,7 +319,6 @@
 
 		// empty overlay control; tracks will be added later
 		layerControl = L.control.layers(baseMaps, overlays).addTo(map);
-
 	</script>
 </body>
 
