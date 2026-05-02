@@ -468,13 +468,6 @@ function refresh_map(selectedFlight) {
         return; // nothing to show
     }
     
-    // Clean up Cesium viewer if it exists (return to 2D view)
-    if (cesium_viewer) {
-        cesium_viewer.destroy();
-        cesium_viewer = null;
-        cesium_paraglider_marker = null;
-    }
-    
     let paragliding_stats = selectedFlight.paragliding_info;
 
     // Update globals infos for the selected track
@@ -544,6 +537,7 @@ function refresh_map(selectedFlight) {
     document.getElementById('comment_button').style.visibility = 'unset';
     document.getElementById('save_button').style.visibility = 'unset';
     document.getElementById('comment').style.visibility = 'hidden';
+    document.getElementById('view_3D_button').style.visibility = 'unset';
     
     // Uncheck hidden objects
     document.getElementById('chkbx_speed_gauge').checked = false;
@@ -721,14 +715,7 @@ function refresh_map(selectedFlight) {
 /* ================================================= 3D mode ================================================= */
 /* =========================================================================================================== */
 
-function view_3D_cmd() {
-    // Clean up previous Cesium viewer if it exists
-    if (cesium_viewer) {
-        cesium_viewer.destroy();
-        cesium_viewer = null;
-        cesium_paraglider_marker = null;
-    }
-    
+function view_3D_cmd() {    
     // Remove Leaflet map if it exists (to free memory and avoid conflicts with Cesium)
     if (typeof map !== 'undefined' && map !== null) {
         map.off();
@@ -737,51 +724,74 @@ function view_3D_cmd() {
         cursor = null;
         start_marker = null;
         end_marker = null;
-    }
 
-    // 1. TA CLEF API ICI
-    Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI0MjQzY2JjMS04MzUwLTQwMjAtOGU3OS04YTllY2IxOGNmNzIiLCJpZCI6NDI2NDQyLCJpc3MiOiJodHRwczovL2lvbi5jZXNpdW0uY29tIiwiYXVkIjoidW5kZWZpbmVkX2RlZmF1bHQiLCJpYXQiOjE3Nzc3MzQwOTh9.PTbFo_76HwlflPAK7qaDiZfM6hVfOxd0IO6-wdWCj_M';
+        // 1. TA CLEF API ICI
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI0MjQzY2JjMS04MzUwLTQwMjAtOGU3OS04YTllY2IxOGNmNzIiLCJpZCI6NDI2NDQyLCJpc3MiOiJodHRwczovL2lvbi5jZXNpdW0uY29tIiwiYXVkIjoidW5kZWZpbmVkX2RlZmF1bHQiLCJpYXQiOjE3Nzc3MzQwOTh9.PTbFo_76HwlflPAK7qaDiZfM6hVfOxd0IO6-wdWCj_M';
 
-    // 2. Initialisation du Viewer avec le relief mondial (Terrain)
-    cesium_viewer = new Cesium.Viewer('map', {
-        terrain: Cesium.Terrain.fromWorldTerrain(),
-        baseLayerPicker: false,
-    });
+        // 2. Initialisation du Viewer avec le relief mondial (Terrain)
+        cesium_viewer = new Cesium.Viewer('map', {
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+            baseLayerPicker: false,
+        });
 
-    // 3. Ajout d'une trace de parapente (Polyline)
-    const cesium_track = [];
-    for (let i = 0; i < active_flight.paragliding_info.length(); i++) {
-        cesium_track.push(active_flight.paragliding_info[i].longitude);
-        cesium_track.push(active_flight.paragliding_info[i].latitude);
-        cesium_track.push(active_flight.paragliding_info[i].gpsAltitude);
-    }
-
-    const flightPath = cesium_viewer.entities.add({
-        name: 'Trace Parapente',
-        polyline: {
-            positions: Cesium.Cartesian3.fromDegreesArrayHeights(cesium_track),
-            width: 3,
-            material: Cesium.Color.RED,
-            relativeToGround: false
+        // 3. Ajout d'une trace de parapente (Polyline)
+        const cesium_track = [];
+        for (let i = 0; i < active_flight.paragliding_info.length(); i++) {
+            cesium_track.push(active_flight.paragliding_info[i].longitude);
+            cesium_track.push(active_flight.paragliding_info[i].latitude);
+            cesium_track.push(active_flight.paragliding_info[i].gpsAltitude);
         }
-    });
 
-    // 4. Ajouter l'icône du parapente
-    const start_point = active_flight.paragliding_info[0];
-    cesium_paraglider_marker = cesium_viewer.entities.add({
-        name: 'Parapente',
-        position: Cesium.Cartesian3.fromDegrees(
-            start_point.longitude,
-            start_point.latitude,
-            start_point.gpsAltitude
-        ),
-        billboard: {
-            image: 'ressources/paraglider.png',
-            scale: 1.0,
-            verticalOrigin: Cesium.VerticalOrigin.BOTTOM
+        const flightPath = cesium_viewer.entities.add({
+            name: 'Trace Parapente',
+            polyline: {
+                positions: Cesium.Cartesian3.fromDegreesArrayHeights(cesium_track),
+                width: 3,
+                material: Cesium.Color.RED,
+                relativeToGround: false
+            }
+        });
+
+        // 4. Ajouter l'icône du parapente
+        const start_point = active_flight.paragliding_info[0];
+        cesium_paraglider_marker = cesium_viewer.entities.add({
+            name: 'Parapente',
+            position: Cesium.Cartesian3.fromDegrees(
+                start_point.longitude,
+                start_point.latitude,
+                start_point.gpsAltitude
+            ),
+            billboard: {
+                image: 'ressources/paraglider.png',
+                scale: 1.0,
+                verticalOrigin: Cesium.VerticalOrigin.BOTTOM
+            }
+        });
+
+        // 5. Zoomer sur la trace
+        cesium_viewer.zoomTo(flightPath);
+    } else {
+        // Clean up previous Cesium viewer if it exists
+        if (cesium_viewer) {
+            cesium_viewer.destroy();
+            cesium_viewer = null;
+            cesium_paraglider_marker = null;
         }
-    });
 
-    // 5. Zoomer sur la trace
-    cesium_viewer.zoomTo(flightPath);
+        // Create map (global variable defined in common.js)
+		map = L.map('map', {
+			center: [47.00068424459144, 2.5548502515601577],
+			zoom: 6,
+			layers: [GeoportailFrance_plan],
+			zoomControl: false
+		});
+		L.control.zoom({
+			position: 'topright'
+		}).addTo(map);
+
+		// empty overlay control; tracks will be added later
+		layerControl = L.control.layers(baseMaps, overlays).addTo(map);
+        refresh_map(active_flight);
+        map.fitBounds(active_flight._polyline.getBounds());
+    }
 }
