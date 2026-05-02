@@ -452,6 +452,8 @@ var start_marker;
 var end_marker;
 var cesium_viewer;
 var cesium_paraglider_marker;
+var cesium_polylines = [];  // array of Cesium polylines for multitracks
+var cesium_entities = [];   // array of all Cesium entities to clean up
 
 // helper for re-style tracks
 function updatePolylineWeights() {
@@ -724,6 +726,9 @@ function view_3D_cmd() {
         cursor = null;
         start_marker = null;
         end_marker = null;
+        
+        cesium_polylines = [];
+        cesium_entities = [];
 
         // 1. TA CLEF API ICI
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI0MjQzY2JjMS04MzUwLTQwMjAtOGU3OS04YTllY2IxOGNmNzIiLCJpZCI6NDI2NDQyLCJpc3MiOiJodHRwczovL2lvbi5jZXNpdW0uY29tIiwiYXVkIjoidW5kZWZpbmVkX2RlZmF1bHQiLCJpYXQiOjE3Nzc3MzQwOTh9.PTbFo_76HwlflPAK7qaDiZfM6hVfOxd0IO6-wdWCj_M';
@@ -734,25 +739,69 @@ function view_3D_cmd() {
             baseLayerPicker: false,
         });
 
-        // 3. Ajout d'une trace de parapente (Polyline)
-        const cesium_track = [];
-        for (let i = 0; i < active_flight.paragliding_info.length(); i++) {
-            cesium_track.push(active_flight.paragliding_info[i].longitude);
-            cesium_track.push(active_flight.paragliding_info[i].latitude);
-            cesium_track.push(active_flight.paragliding_info[i].gpsAltitude);
-        }
-
-        const flightPath = cesium_viewer.entities.add({
-            name: 'Trace Parapente',
-            polyline: {
-                positions: Cesium.Cartesian3.fromDegreesArrayHeights(cesium_track),
-                width: 3,
-                material: Cesium.Color.RED,
-                relativeToGround: false
+        // 3. Add all flights as polylines with unique colors (multitracks support)
+        let bounds = [];
+        let flightPolylines = {}; // Map flight to polyline for click handling
+        
+        flights.forEach((flight, index) => {
+            const stats = flight.paragliding_info;
+            const cesium_track = [];
+            
+            for (let i = 0; i < stats.length(); i++) {
+                cesium_track.push(stats[i].longitude);
+                cesium_track.push(stats[i].latitude);
+                cesium_track.push(stats[i].gpsAltitude);
+                if (i === 0) {
+                    bounds.push([stats[i].latitude, stats[i].longitude]);
+                }
+                if (i === stats.length() - 1) {
+                    bounds.push([stats[i].latitude, stats[i].longitude]);
+                }
             }
+
+            // Get color for this flight
+            const cesiumColor = getCesiumColor(track_colors[index % track_colors.length]);
+            const lineWidth = (flight === active_flight) ? selected_track_weight : default_track_weight;
+
+            // Add polyline for this flight
+            const polyline = cesium_viewer.entities.add({
+                name: flight.file_name || ('Track ' + (index + 1)),
+                polyline: {
+                    positions: Cesium.Cartesian3.fromDegreesArrayHeights(cesium_track),
+                    width: lineWidth,
+                    material: cesiumColor,
+                    relativeToGround: false,
+                    clampToGround: false
+                }
+            });
+            
+            // Store reference to flight for click handling
+            polyline.flightIndex = index;
+            polyline.flight = flight;
+            flightPolylines[index] = polyline;
+            cesium_polylines.push(polyline);
+            cesium_entities.push(polyline);
         });
 
-        // 4. Ajouter l'icône du parapente
+        // Add a single click handler for all polylines
+        const handler = new Cesium.ScreenSpaceEventHandler(cesium_viewer.scene.canvas);
+        handler.setInputAction(function onLeftClick(movement) {
+            const pickedObject = cesium_viewer.scene.pick(movement.position);
+            if (Cesium.defined(pickedObject) && pickedObject.id && pickedObject.id.flightIndex !== undefined) {
+                const flight = pickedObject.id.flight;
+                if (flight !== active_flight) {
+                    active_flight = flight;
+                    // Update polyline widths without full redraw
+                    flights.forEach((f, idx) => {
+                        if (flightPolylines[idx]) {
+                            flightPolylines[idx].polyline.width = (f === active_flight) ? selected_track_weight : default_track_weight;
+                        }
+                    });
+                }
+            }
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+        // 4. Add paraglider marker
         const start_point = active_flight.paragliding_info[0];
         cesium_paraglider_marker = cesium_viewer.entities.add({
             name: 'Parapente',
@@ -767,15 +816,18 @@ function view_3D_cmd() {
                 verticalOrigin: Cesium.VerticalOrigin.BOTTOM
             }
         });
+        cesium_entities.push(cesium_paraglider_marker);
 
-        // 5. Zoomer sur la trace
-        cesium_viewer.zoomTo(flightPath);
+        // 5. Zoom to all tracks
+        cesium_viewer.zoomTo(cesium_viewer.entities);
     } else {
         // Clean up previous Cesium viewer if it exists
         if (cesium_viewer) {
             cesium_viewer.destroy();
             cesium_viewer = null;
             cesium_paraglider_marker = null;
+            cesium_polylines = [];
+            cesium_entities = [];
         }
 
         // Create map (global variable defined in common.js)
@@ -794,4 +846,19 @@ function view_3D_cmd() {
         refresh_map(active_flight);
         map.fitBounds(active_flight._polyline.getBounds());
     }
+}
+
+// Convert Leaflet color names to Cesium colors
+function getCesiumColor(colorName) {
+    const colorMap = {
+        'red': Cesium.Color.RED,
+        'blue': Cesium.Color.BLUE,
+        'green': Cesium.Color.GREEN,
+        'orange': Cesium.Color.ORANGE,
+        'purple': Cesium.Color.PURPLE,
+        'black': Cesium.Color.BLACK,
+        'yellow': Cesium.Color.YELLOW,
+        'cyan': Cesium.Color.CYAN
+    };
+    return colorMap[colorName] || Cesium.Color.WHITE;
 }
