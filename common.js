@@ -197,11 +197,24 @@ function closest_point(lat, lon) {
 }
 function update_position(position_index) {
     let paragliding_stats = active_flight.paragliding_info;
-    latlng = new leaflet.LatLng(0, 0);
-    // Update cursor
-    latlng.lat = paragliding_stats[position_index].latitude;
-    latlng.lng = paragliding_stats[position_index].longitude;
-    cursor.setLatLng(latlng);
+    
+    // Update cursor in 2D view only if it exists
+    if (cursor) {
+        latlng = new leaflet.LatLng(0, 0);
+        latlng.lat = paragliding_stats[position_index].latitude;
+        latlng.lng = paragliding_stats[position_index].longitude;
+        cursor.setLatLng(latlng);
+    }
+    
+    // Update 3D marker if viewer exists
+    if (cesium_paraglider_marker) {
+        cesium_paraglider_marker.position = Cesium.Cartesian3.fromDegrees(
+            paragliding_stats[position_index].longitude,
+            paragliding_stats[position_index].latitude,
+            paragliding_stats[position_index].gpsAltitude
+        );
+    }
+    
     // Update info
     display_stats(paragliding_stats[position_index]);
     // Update speed
@@ -437,6 +450,8 @@ async function update_map(flight) {
 var cursor;
 var start_marker;
 var end_marker;
+var cesium_viewer;
+var cesium_paraglider_marker;
 
 // helper for re-style tracks
 function updatePolylineWeights() {
@@ -452,6 +467,14 @@ function refresh_map(selectedFlight) {
     if(!selectedFlight) {
         return; // nothing to show
     }
+    
+    // Clean up Cesium viewer if it exists (return to 2D view)
+    if (cesium_viewer) {
+        cesium_viewer.destroy();
+        cesium_viewer = null;
+        cesium_paraglider_marker = null;
+    }
+    
     let paragliding_stats = selectedFlight.paragliding_info;
 
     // Update globals infos for the selected track
@@ -692,4 +715,73 @@ function refresh_map(selectedFlight) {
     Plotly.newPlot('speed_gauge', gauge_data, gauge_layout, { displayModeBar: false });
     // Create Vario
     Plotly.newPlot('vario', vario_data, vario_layout, { displayModeBar: false });
+}
+
+/* =========================================================================================================== */
+/* ================================================= 3D mode ================================================= */
+/* =========================================================================================================== */
+
+function view_3D_cmd() {
+    // Clean up previous Cesium viewer if it exists
+    if (cesium_viewer) {
+        cesium_viewer.destroy();
+        cesium_viewer = null;
+        cesium_paraglider_marker = null;
+    }
+    
+    // Remove Leaflet map if it exists (to free memory and avoid conflicts with Cesium)
+    if (typeof map !== 'undefined' && map !== null) {
+        map.off();
+        map.remove();
+        map = null;
+        cursor = null;
+        start_marker = null;
+        end_marker = null;
+    }
+
+    // 1. TA CLEF API ICI
+    Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI0MjQzY2JjMS04MzUwLTQwMjAtOGU3OS04YTllY2IxOGNmNzIiLCJpZCI6NDI2NDQyLCJpc3MiOiJodHRwczovL2lvbi5jZXNpdW0uY29tIiwiYXVkIjoidW5kZWZpbmVkX2RlZmF1bHQiLCJpYXQiOjE3Nzc3MzQwOTh9.PTbFo_76HwlflPAK7qaDiZfM6hVfOxd0IO6-wdWCj_M';
+
+    // 2. Initialisation du Viewer avec le relief mondial (Terrain)
+    cesium_viewer = new Cesium.Viewer('map', {
+        terrain: Cesium.Terrain.fromWorldTerrain(),
+        baseLayerPicker: false,
+    });
+
+    // 3. Ajout d'une trace de parapente (Polyline)
+    const cesium_track = [];
+    for (let i = 0; i < active_flight.paragliding_info.length(); i++) {
+        cesium_track.push(active_flight.paragliding_info[i].longitude);
+        cesium_track.push(active_flight.paragliding_info[i].latitude);
+        cesium_track.push(active_flight.paragliding_info[i].gpsAltitude);
+    }
+
+    const flightPath = cesium_viewer.entities.add({
+        name: 'Trace Parapente',
+        polyline: {
+            positions: Cesium.Cartesian3.fromDegreesArrayHeights(cesium_track),
+            width: 3,
+            material: Cesium.Color.RED,
+            relativeToGround: false
+        }
+    });
+
+    // 4. Ajouter l'icône du parapente
+    const start_point = active_flight.paragliding_info[0];
+    cesium_paraglider_marker = cesium_viewer.entities.add({
+        name: 'Parapente',
+        position: Cesium.Cartesian3.fromDegrees(
+            start_point.longitude,
+            start_point.latitude,
+            start_point.gpsAltitude
+        ),
+        billboard: {
+            image: 'ressources/paraglider.png',
+            scale: 1.0,
+            verticalOrigin: Cesium.VerticalOrigin.BOTTOM
+        }
+    });
+
+    // 5. Zoomer sur la trace
+    cesium_viewer.zoomTo(flightPath);
 }
