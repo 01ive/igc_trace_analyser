@@ -523,7 +523,6 @@ function refresh_map(selectedFlight) {
         updatePolylineWeights();
     });
 
-
     // Display UI elements
     document.getElementById('title').style.visibility = 'unset';
     document.getElementById('elevation').style.visibility = 'unset';
@@ -565,11 +564,13 @@ function refresh_map(selectedFlight) {
         const pl = L.polyline(latlngs, {color: color, weight: weight});
         pl.addTo(map);
         pl.on('click', (e) => {
-            // prevent the map click handler from toggling autorize_map_mousemove
-            L.DomEvent.stopPropagation(e);
-            // when a polyline is clicked, make it active and redraw
-            active_flight = flight;
-            refresh_map(flight);
+            if (window.distanceMeasure && window.distanceMeasure.isNotActive()) {
+                // prevent the map click handler from toggling autorize_map_mousemove
+                L.DomEvent.stopPropagation(e);
+                // when a polyline is clicked, make it active and redraw
+                active_flight = flight;
+                refresh_map(flight);
+            }
         });
         flight._polyline = pl; // store reference if needed later
         layers.push(pl);
@@ -601,25 +602,31 @@ function refresh_map(selectedFlight) {
 
     // var autorize_map_mousemove = true;
 
+    // Add measure tool 
+    window.createMeasureTool(map);
+
     if (!map_events_created) {
         map_events_created = true;
         // interaction on map (refers to active_flight internally via closest_point)
         map.on('mousemove', function(ev) {
-            if( (auto_play_timer == 0) && (autorize_map_mousemove) && active_flight ) {
+            
+            if( (auto_play_timer == 0) && (autorize_map_mousemove) && active_flight && window.distanceMeasure && window.distanceMeasure.isNotActive()) {
                 var latlng = map.mouseEventToLatLng(ev.originalEvent);
                 let idx = closest_point(latlng.lat, latlng.lng);
                 update_position(idx);
             }
         });
         map.on('click', function(ev) {
-            if(autorize_map_mousemove) {
-                autorize_map_mousemove = false;
-            } else {
-                autorize_map_mousemove = true;
+            if (window.distanceMeasure && window.distanceMeasure.isNotActive()) {
+                if(autorize_map_mousemove) {
+                    autorize_map_mousemove = false;
+                } else {
+                    autorize_map_mousemove = true;
+                }
+                var latlng = map.mouseEventToLatLng(ev.originalEvent);
+                let idx = closest_point(latlng.lat, latlng.lng);
+                update_position(idx);
             }
-            var latlng = map.mouseEventToLatLng(ev.originalEvent);
-            let idx = closest_point(latlng.lat, latlng.lng);
-            update_position(idx);
         });
 
         // zoom the map to the polyline

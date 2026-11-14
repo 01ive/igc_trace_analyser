@@ -16,6 +16,9 @@
 
 	<script src="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Cesium.js"></script>
   	<link href="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+
+	<link rel="stylesheet" href="measure.css"/>
+	<script src="measure.js"></script>    
 </head>
 
 <body>
@@ -319,6 +322,8 @@
 
 		// empty overlay control; tracks will be added later
 		layerControl = L.control.layers(baseMaps, overlays).addTo(map);
+
+		window.createMeasureTool(map);
 	</script>
 </body>
 
