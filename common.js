@@ -315,6 +315,13 @@ function update_globals_infos(flight) {
     document.getElementById('max_vertical_speed').innerHTML = flight.flight_info.max_vertical_speed.toPrecision(2) + "m/s";
     document.getElementById('elevation_max').innerHTML = flight.flight_info.elevation_max.toFixed(0) + "m";
     document.getElementById('over_takeoff_elevation').innerHTML = flight.flight_info.elevation_over_start.toFixed(0) + "m";
+
+    document.getElementById('score_total').innerHTML = flight.flight_info.score.total + "%";
+    document.getElementById('score_maintien').innerHTML = flight.flight_info.score.maintien + "%";
+    document.getElementById('score_thermique').innerHTML = flight.flight_info.score.thermique + "%";
+    document.getElementById('score_extraction').innerHTML = flight.flight_info.score.extraction + "%";
+    document.getElementById('score_xc').innerHTML = flight.flight_info.score.xc + "%";
+    document.getElementById('glide_index').innerHTML = flight.flight_info.glideIndex;
 }
 
 /* =========================================================================================================== */
@@ -425,6 +432,7 @@ async function update_map(flight) {
     user_message.style.visibility = 'visible';
     await new Promise(resolve => setTimeout(resolve, 100)); // Give time to refresh display
     flight.process_flight_info();
+    flight.process_flight_score();
     user_message.style.visibility = 'hidden';
 
     if(! flight.paragliding_info[0].terrain_elevation) {

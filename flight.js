@@ -199,7 +199,7 @@ class Flight {
         this.flight_info.loggerType = igc_obj.loggerType;
 
         // Create paragliding_info object
-        this.paragliding_info = new geoparagliding.ParaglidingPoint(igc_obj.fixes);
+        this.paragliding_info = new ParaglidingPoint(igc_obj.fixes);
 
         // Process terrain elevation if extension XXT exists
         if( this.paragliding_info[0].extensions['XXT'] ) {
@@ -237,7 +237,7 @@ class Flight {
             igc_obj[i].pressureAltitude = gpx.tracks[0].points[i].ele;
             igc_obj[i].gpsAltitude = igc_obj[i].pressureAltitude;
         }
-        this.paragliding_info = new geoparagliding.ParaglidingPoint(igc_obj);
+        this.paragliding_info = new ParaglidingPoint(igc_obj);
     }
 
     convert_gpx_to_igc() {
@@ -273,7 +273,7 @@ class Flight {
         this.file_name = this.file_name.replace(/\.[^/.]+$/, "") + '.igc';
     }
 
-    async process_flight_info() {
+    process_flight_info() {
         this.flight_info.file_name = this.file_name;
         // Process points info
         this.paragliding_info.calculate_elevation();
@@ -307,6 +307,45 @@ class Flight {
 
         this.flight_info.elevation_start = this.paragliding_info[0].gpsAltitude;
         this.flight_info.elevation_stop = this.paragliding_info[this.flight_info.number_of_point-1].gpsAltitude;
+    }
+
+    process_flight_score() {
+        // 1. Durée en secondes
+        const [h, m, s] = (this.flight_info.duration || "00:00:00").split(':').map(Number);
+        const durationSec = (h || 0) * 3600 + (m || 0) * 60 + (s || 0);
+
+        // Dénivelé net (plafonné à min 250m pour éviter l'explosion si repose au déco)
+        const netDrop = Math.max(Number(this.flight_info.high) || 350, 250);
+
+        // Filtre anti-glitch GPS (ex: SIV #127 où max_vertical_speed = 78 m/s)
+        const isGlitch = (Number(this.flight_info.max_vertical_speed) || 0) > 30;
+        const gain = isGlitch ? 0 : (Number(this.flight_info.elevation_total) || 0);
+        const overStart = isGlitch ? 0 : (Number(this.flight_info.elevation_over_start) || 0);
+        const maxDistKm = (Number(this.flight_info.distance_max_from_start) || 0) / 1000;
+
+        // A. Score de Maintien (sur 35 pts) : Ratio Durée réelle / Durée théorique d'un plouf à -1.15 m/s
+        const glideIndex = (durationSec * 1.15) / netDrop; // 1.0 = plouf standard
+        const airtimeScore = Math.min(35, Math.max(0, ((glideIndex - 0.7) / 4.3) * 35));
+
+        // B. Score de Gain Thermique (sur 30 pts) : Ratio D+ cumulé / Dénivelé du site (max à 1.5x le dénivelé)
+        const climbRatio = gain / netDrop;
+        const climbScore = Math.min(30, (climbRatio / 1.5) * 30);
+
+        // C. Score d'Extraction au-dessus du déco (sur 20 pts, plein à +250m au-dessus du déco)
+        const ceilingScore = Math.min(20, (overStart / 250) * 20);
+
+        // D. Score de Rayon XC (sur 15 pts, au-delà de 1.5 km d'éloignement, plein à 8 km)
+        const xcScore = Math.min(15, Math.max(0, ((maxDistKm - 1.5) / 6.5) * 15));
+
+        const totalScore = Math.round(airtimeScore + climbScore + ceilingScore + xcScore);
+
+        this.flight_info.score = {};
+        this.flight_info.score.maintien = Math.round(airtimeScore);
+        this.flight_info.score.thermique = Math.round(climbScore);
+        this.flight_info.score.extraction = Math.round(ceilingScore);
+        this.flight_info.score.xc = Math.round(xcScore);
+        this.flight_info.score.total = totalScore;
+        this.flight_info.glideIndex = glideIndex.toFixed(1); // Ex: "2.4x" (2.4 fois le temps d'un plouf)
     }
 }
 

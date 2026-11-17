@@ -13,18 +13,16 @@
 		integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 	<script src="https://unpkg.com/gpxparser@3.0.8/dist/GPXParser.min.js"></script>
 
-	<script src="common.js"></script>
-	<script src="igc-parser.js"></script>
-	<script src="geoparagliding.js"></script>
-	<script src="flight.js"></script>
-
-	
-
 	<script src="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Cesium.js"></script>
   	<link href="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 
 	<link rel="stylesheet" href="measure.css"/>
 	<script src="measure.js"></script>    
+
+	<script src="common.js"></script>
+	<script src="igc-parser.js"></script>
+	<script src="geoparagliding.js"></script>
+	<script src="flight.js"></script>
 </head>
 
 <body>
@@ -180,6 +178,33 @@
 			<tr>
 				<td>max takeoff elevation</td>
 				<td id="over_takeoff_elevation">----</td>
+			</tr>
+			<tr class="line_title">
+				<td>SCORE</td>
+			</tr>
+			<tr>
+				<td>score</td>
+				<td id="score_total">----</td>
+			</tr>
+			<tr>
+				<td>maintien</td>
+				<td id="score_maintien">----</td>
+			</tr>
+			<tr>
+				<td>thermique</td>
+				<td id="score_thermique">----</td>
+			</tr>
+			<tr>
+				<td>extraction</td>
+				<td id="score_extraction">----</td>
+			</tr>
+			<tr>
+				<td>xc</td>
+				<td id="score_xc">----</td>
+			</tr>
+			<tr>
+				<td>glide index</td>
+				<td id="glide_index">----</td>
 			</tr>
 		</table>
 	</div>
